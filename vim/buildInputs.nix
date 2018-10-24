@@ -8,7 +8,7 @@
 with import <nixpkgs> { config.allowUnfree = true; };
 let
   custom = import ../all-custom.nix;
-  nixos = import <nixos> { config.allowUnfree = true; };
+  #nixos = import <nixos> { config.allowUnfree = true; };
 in [
   pkgs.python3
   ####################
@@ -17,7 +17,7 @@ in [
   custom.black
   pkgs.html-tidy
   custom.perlPackages.pgFormatter
-  nixos.nodePackages.prettier
+  pkgs.nodePackages.prettier
   pkgs.php72Packages.php-cs-fixer
   pkgs.python36Packages.flake8
   pkgs.python36Packages.jsbeautifier
@@ -41,7 +41,7 @@ in [
   # I need to create a Nix expression for installing phpstan.
   # TODO Should phpstan be in addition to phpcs? Does phpstan conflict with the MW styleguide?
 
-  nixos.nodePackages.eslint
+  pkgs.nodePackages.eslint
 
   # TODO pgsanity is not currently supported by Syntastic.
   #      Is it worth adding it? Or should we just rely on sqlint?
