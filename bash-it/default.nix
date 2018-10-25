@@ -26,6 +26,8 @@ stdenv.mkDerivation rec {
   #    run-time, but that isn't always the case."
   buildInputs = [ ];
 
+  awkAlias = "${gawk}/bin/awk";
+
   src = fetchFromGitHub {
     owner = "Bash-it";
     repo = "bash-it";
@@ -33,23 +35,25 @@ stdenv.mkDerivation rec {
     sha256 = "1zzi4iwznqsdy7kzkqh9clhvqlzh3bym1cfr1fhg701bnnnx8z0x";
   };
 
-#  buildPhase = ''
-#	echo 'building...'
-#  '';
-#
 #  #doCheck = true;
 #
 #  checkPhase = ''
 #  '';
 
+  awkPattern = "[`(|[:space:]]awk[[:space:]]";
+
   installPhase = ''
-    #binDir="$out/bin"
     targetDir="$out/share/bash_it"
     mkdir -p $targetDir
 
     for content in aliases bash_it.sh completion custom install.sh lib plugins template themes uninstall.sh
     do
       cp -r "$content" "$targetDir/$content"
+    done
+
+    for f in $(grep -rIl '${awkPattern}' "$targetDir"); do
+      substituteInPlace $f \
+            --replace "awk" "${awkAlias}"
     done
 
     "./install.sh" --no-modify-config
