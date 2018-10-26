@@ -4,7 +4,6 @@ let
   pvjs = callPackage ./default.nix { };
 in [
   pkgs.coreutils
-  pkgs.jq
   pkgs.nodejs
   pkgs.nodePackages.node2nix
 ] ++ (if stdenv.isDarwin then [] else [])

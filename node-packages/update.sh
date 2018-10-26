@@ -24,7 +24,6 @@ exit_if_not_installed nix-channel;
 exit_if_not_installed nix-env;
 nix-channel --update
 
-ensure_installed jq "nix-env -f <nixpkgs> -i jq";
 ensure_installed node "nix-env -f <nixpkgs> -i nodejs";
 ensure_installed node2nix "nix-env -f <nixpkgs> -iA nodePackages.node2nix";
 
