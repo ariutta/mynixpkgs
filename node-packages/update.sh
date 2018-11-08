@@ -17,7 +17,7 @@ function ensure_installed() {
 
 SCRIPT_DIR="$(get_script_dir)"
 
-echo "installing/updating pvjs"
+echo "installing/updating node packages"
 
 echo "ensuring nix is installed and up to date...";
 exit_if_not_installed nix-channel;
@@ -31,5 +31,5 @@ cd "$SCRIPT_DIR";
 
 rm -f default.nix node-packages.nix node-env.nix;
 
-node2nix --flatten -6 -i "$SCRIPT_DIR/node-packages.json"
+node2nix -8 --bypass-cache -i "$SCRIPT_DIR/node-packages.json"
 nix-env -f default.nix -i

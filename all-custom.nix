@@ -10,9 +10,9 @@ in
   java-buildpack-memory-calculator = callPackage ./java-buildpack-memory-calculator/default.nix {};
   mediawiki-codesniffer = callPackage ./mediawiki-codesniffer/default.nix {};
   pathvisio = callPackage ./pathvisio/default.nix {};
-  bridgedb = nodePackages."bridgedb-6.0.0-18";
-  gpml2pvjson = nodePackages."gpml2pvjson-3.0.0-5";
-  pvjs = nodePackages."@wikipathways/pvjs-4.0.0-7";
+  bridgedb = nodePackages."bridgedb-6.0.2";
+  gpml2pvjson = nodePackages."gpml2pvjson-4.1.1";
+  pvjs = nodePackages."@wikipathways/pvjs-4.0.4";
   perlPackages = callPackage ./perl-packages.nix {}; 
   pgsanity = callPackage ./pgsanity/default.nix {};
   privoxy = callPackage ./privoxy/darwin-service.nix {}; 
