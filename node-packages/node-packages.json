@@ -1,6 +1,0 @@
-[
-  { "bridgedb" : "6.0.2" },
-  { "gpml2pvjson" : "4.1.1" },
-  { "@wikipathways/pvjs" : "4.0.4" },
-  { "node2nix": "git://github.com/svanderburg/node2nix.git" }
-]
