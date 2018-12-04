@@ -91,7 +91,7 @@ stdenv.mkDerivation rec {
   sharePath1 = "$out/share/pathvisio";
 
   biopax3GPMLSrc = fetchurl {
-    url = "https://cdn.rawgit.com/wikipathways/wikipathways.org/e8fae01e/wpi/bin/Biopax3GPML.jar";
+    url = "https://github.com/wikipathways/wikipathways.org/blob/f6e9c337c0a9029f0f329dc1ab156858b1433406/wpi/bin/Biopax3GPML.jar?raw=true";
     sha256 = "1jm5khh6n78fghd7wp0m5dcb6s2zp23pgsbw56rpajfxgx1sz7lg";
   };
 
@@ -250,7 +250,7 @@ elif [ \$SUBCOMMAND = 'convert' ]; then
     echo '       scale is only for converting to PNG format.'
     echo ' '
     echo 'examples on example data WP1243_69897.gpml:'
-    echo '    wget https://cdn.rawgit.com/PathVisio/GPML/fa76a73d/test/2013a/WP1243_69897.gpml'
+    echo '    wget https://github.com/PathVisio/GPML/blob/fa76a73db631bdffcf0f63151b752e0e0357fd26/test/2013a/WP1243_69897.gpml?raw=true -O WP1243_69897.gpml'
     echo ' '
     echo '  # GPML -> BioPAX/OWL'
     echo '  pathvisio convert WP1243_69897.gpml WP1243_69897.owl'
