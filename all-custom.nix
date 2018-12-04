@@ -1,6 +1,20 @@
 with import <nixpkgs> { config.allowUnfree = true; };
 
+let
+  nodePackages_6_x = callPackage ./development/node-packages/default-v6.nix {
+    nodejs = pkgs.nodejs-6_x;
+  };
+  nodePackages_8_x = callPackage ./development/node-packages/default-v8.nix {
+    nodejs = pkgs.nodejs-8_x;
+  };
+  nodePackages = nodePackages_8_x;
+in
 {
+  nodePackages = nodePackages;
+  gpml2pvjson = nodePackages.gpml2pvjson;
+  # TODO: fix this. It doesn't build as node 8 for some reason.
+  bridgedb = nodePackages_6_x.bridgedb;
+  pvjs = nodePackages."@wikipathways/pvjs";
 
   bash-it = callPackage ./bash-it/default.nix {}; 
   black = callPackage ./black/default.nix {}; 
@@ -14,5 +28,4 @@ with import <nixpkgs> { config.allowUnfree = true; };
   sqlint = callPackage ./sqlint/default.nix {};
   tosheets = callPackage ./tosheets/default.nix {};
   vim = callPackage ./vim/default.nix {};
-
 }
