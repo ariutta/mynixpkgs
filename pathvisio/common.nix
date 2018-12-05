@@ -1,22 +1,22 @@
 { ant,
-bc,
-callPackage,
-coreutils,
-fetchFromGitHub,
-fetchurl,
-getopt,
-imagemagick7,
-jdk,
-makeDesktopItem,
-parallel,
-stdenv,
-unzip,
-xmlstarlet,
-xpdf,
-memory,
-headless ? false,
-organism ? "Homo sapiens",
-datasources ? [] }:
+  bc,
+  callPackage,
+  coreutils,
+  fetchFromGitHub,
+  fetchurl,
+  getopt,
+  imagemagick7,
+  jdk,
+  makeDesktopItem,
+  parallel,
+  stdenv,
+  unzip,
+  xmlstarlet,
+  xpdf,
+  memory,
+  headless ? false,
+  organism ? "Homo sapiens",
+  datasources ? [] }:
 # TODO: allow for specifying plugins to install
 #       How? I don't think we can symlink into
 #       the user's $HOME/.PathVisio dir during
@@ -66,9 +66,22 @@ stdenv.mkDerivation rec {
   PHASHSUMS = ./PHASHSUMS;
   SHA256SUMS = ./SHA256SUMS;
   # To reset sums, run the following:
-  #     rm -f./PHASHSUMS ./SHA256SUMS
-  #     touch./PHASHSUMS ./SHA256SUMS
-  #     nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix { }'
+  #     mv ./PHASHSUMS ./PHASHSUMS-old
+  #     mv ./SHA256SUMS ./SHA256SUMS-old
+  #     touch ./PHASHSUMS ./SHA256SUMS
+  #     nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix { }' -K
+  #
+  #     Manually verify the output(s) in <testResultsDir> that failed.
+  #     If you don't remember which failed, you can diff as shown below,
+  #     but this method is really only useful for SHA256SUMS.
+  #     PHASHSUMS change slightly even when things are OK.
+  #     diff ./PHASHSUMS-old <testResultsDir>/PHASHSUMS
+  #     diff ./SHA256SUMS-old <testResultsDir>/SHA256SUMS
+  #
+  #     If the new outputs look OK, copy over the new sums:
+  #     cp <testResultsDir>/PHASHSUMS ./PHASHSUMS
+  #     cp <testResultsDir>/SHA256SUMS ./SHA256SUMS
+  #     rm ./PHASHSUMS-old ./SHA256SUMS-old
 
   XSLT_NORMALIZE = ./normalize.xslt;
   WP4321_98000_BASE64 = fetchurl {
@@ -91,7 +104,7 @@ stdenv.mkDerivation rec {
   sharePath1 = "$out/share/pathvisio";
 
   biopax3GPMLSrc = fetchurl {
-    url = "https://github.com/wikipathways/wikipathways.org/blob/f6e9c337c0a9029f0f329dc1ab156858b1433406/wpi/bin/Biopax3GPML.jar?raw=true";
+    url = "https://github.com/wikipathways/wikipathways.org/blob/e8fae01eae010e498d7408ca38e0beda1e8625d7/wpi/bin/Biopax3GPML.jar?raw=true";
     sha256 = "1jm5khh6n78fghd7wp0m5dcb6s2zp23pgsbw56rpajfxgx1sz7lg";
   };
 
@@ -435,8 +448,6 @@ EOF
     testResultsDir="$tmpBuildDir/test-results"
 
     mkdir "$testResultsDir"
-    cp ${PHASHSUMS} "$testResultsDir/PHASHSUMS"
-    cp ${SHA256SUMS} "$testResultsDir/SHA256SUMS"
 
     cd "$binDir"
 
@@ -469,15 +480,22 @@ export -f gpml2many
 
     cd "$testResultsDir"
 
+    PASSING=true
+
     if [ -n "$(cat ${SHA256SUMS})" ]; then
       echo 'Verifying shasums...'
+      cp ${SHA256SUMS} "$testResultsDir/SHA256SUMS"
       sha256sum -c --quiet "./SHA256SUMS"
     else
+      PASSING=false
       echo ' '
       echo 'SHA256SUMS not set.'
-      echo 'Copy the following to "./SHA256SUMS":'
+      echo "Verify the converted outputs in $testResultsDir"
+      echo "If they look OK, get the updated SHA256SUMS:"
+      echo "cp $testResultsDir/SHA256SUMS ./SHA256SUMS"
       echo ' '
-      sha256sum --tag ./*.norm.{bpss,gpml,owl}
+      touch "$testResultsDir/SHA256SUMS"
+      sha256sum --tag ./*.norm.{bpss,gpml,owl} >> "$testResultsDir/SHA256SUMS"
       echo ' '
     fi
 
@@ -493,6 +511,7 @@ export -f gpml2many
 
     if [ -n "$(cat ${PHASHSUMS})" ]; then
       echo 'Verifying perceptual hash (phash) sums...'
+      cp ${PHASHSUMS} "$testResultsDir/PHASHSUMS"
       while IFS=" ()=" read -r alg converted blank expected;
       do
         if [ -f "$converted" ]; then
@@ -559,17 +578,22 @@ export -f gpml2many
         fi
       done
     else
+      PASSING=false
       echo ' '
       echo 'PHASHSUMS not set.'
-      echo 'Copy the following to "./PHASHSUMS":'
+      echo "Verify the converted outputs in $testResultsDir"
+      echo "If they look OK, get the updated PHASHSUMS:"
+      echo "cp $testResultsDir/PHASHSUMS ./PHASHSUMS"
       echo ' '
+      touch "$testResultsDir/PHASHSUMS"
       # NOTE: PNGs larger than limit are too big to calculate the phash
       limit=200000
       for f in ./*.png; do
         size=$(stat --printf="%s" "$f")
         if [ $size -lt $limit ]; then
           phash=$(identify -quiet -verbose -moments -alpha off "$f" | grep "PH[1-7]" | sed -n 's/.*: \(.*\)$/\1/p' | sed 's/ *//g' | tr "\n" ",")
-          echo "PHASH ($f) = $phash"
+          #echo "PHASH ($f) = $phash" | tee -a "$testResultsDir/PHASHSUMS"
+          echo "PHASH ($f) = $phash" >> "$testResultsDir/PHASHSUMS"
         fi
       done
       echo ' '
@@ -601,6 +625,12 @@ export -f gpml2many
       echo "-----------------"
       echo "$common"
       echo "-----------------"
+      exit 1;
+    fi
+
+    echo "PASSING: $PASSING"
+    if [ ! $PASSING ]; then
+      echo "Quitting because test(s) failed."
       exit 1;
     fi
 
