@@ -18,6 +18,8 @@ in [
   pkgs.html-tidy
   custom.perlPackages.pgFormatter
   pkgs.nodePackages.prettier
+  # TODO: take a look at javascript-typescript-langserver
+  pkgs.nodePackages.typescript
   pkgs.php72Packages.php-cs-fixer
   pkgs.python36Packages.flake8
   pkgs.python36Packages.jsbeautifier

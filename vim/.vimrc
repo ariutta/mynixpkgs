@@ -131,7 +131,8 @@ let g:syntastic_sh_checkers = ['shellcheck']
 let g:syntastic_sh_shellcheck_args = "-x"
 
 let g:syntastic_sql_checkers = ['sqlint']
-let g:syntastic_typescript_checkers = ['tsuquyomi']
+" TODO: getting an error when this is enabled
+"let g:syntastic_typescript_checkers = ['tsuquyomi']
 
 """""""""""""""""""""""""
 " CtrlP: better searching
