@@ -21,13 +21,13 @@ in [
   # TODO: take a look at javascript-typescript-langserver
   pkgs.nodePackages.typescript
   pkgs.php72Packages.php-cs-fixer
-  pkgs.python36Packages.flake8
-  pkgs.python36Packages.jsbeautifier
-  pkgs.python36Packages.pylint
+  pkgs.python3Packages.flake8
+  pkgs.python3Packages.jsbeautifier
+  #pkgs.python3Packages.pylint
 
   # sqlparse is on the command line as sqlformat.
   # It fails for some standard sql expressions (maybe CREATE TABLE?).
-  pkgs.python36Packages.sqlparse
+  pkgs.python3Packages.sqlparse
 
   pkgs.shfmt
 

@@ -40,11 +40,17 @@ stdenv.mkDerivation rec {
 #  checkPhase = ''
 #  '';
 
+#  buildCommand = ''
+#    patchShebangs ./install.sh
+#  '';
+
   awkPattern = "[`(|[:space:]]awk[[:space:]]";
 
   installPhase = ''
     targetDir="$out/share/bash_it"
     mkdir -p $targetDir
+
+    patchShebangs ./install.sh
 
     for content in aliases bash_it.sh completion custom install.sh lib plugins template themes uninstall.sh
     do
@@ -56,36 +62,36 @@ stdenv.mkDerivation rec {
             --replace "awk" "${awkAlias}"
     done
 
-    "./install.sh" --no-modify-config
+    ./install.sh --no-modify-config
 
     echo ""
     echo "****************************************"
     echo "* Add the following to your ~/.profile *"
     echo "****************************************"
     echo ""
-echo "export BASH_IT=\"\$HOME/.nix-profile/share/bash_it\""
-echo 'if [ -n "$BASH_VERSION" ] && [ -d "$BASH_IT" ]; then'
-echo '	# Assume Bash'
-echo ""
-echo '	export PATH=$PATH:$BASH_IT'
-echo ""
-echo '	# http://powerline.readthedocs.io/en/master/usage/shell-prompts.html#bash-prompt'
-echo '	powerline-daemon -q'
-echo '	export POWERLINE_BASH_CONTINUATION=1'
-echo '	export POWERLINE_BASH_SELECT=1'
-echo '	. "$(nix-env -q --out-path --no-name 'python3.6-powerline-2.6')/lib/python3.6/site-packages/powerline/bindings/bash/powerline.sh"'
-echo ""
-echo '	# Lock and Load a custom theme file'
-echo '	# location $HOME/.bash_it/themes/'
-echo '	export BASH_IT_THEME="powerline"'
-echo ""
-echo '	# (Advanced): Uncomment this to make Bash-it reload itself automatically'
-echo '	# after enabling or disabling aliases, plugins, and completions.'
-echo '	export BASH_IT_AUTOMATIC_RELOAD_AFTER_CONFIG_CHANGE=1'
-echo ""
-echo '	# Load Bash It'
-echo '	if [ -e "$BASH_IT/bash_it.sh" ]; then . "$BASH_IT/bash_it.sh"; fi'
-echo 'fi'
+    echo "export BASH_IT=\"\$HOME/.nix-profile/share/bash_it\""
+    echo 'if [ -n "$BASH_VERSION" ] && [ -d "$BASH_IT" ]; then'
+    echo '	# Assume Bash'
+    echo ""
+    echo '	export PATH=$PATH:$BASH_IT'
+    echo ""
+    echo '	# http://powerline.readthedocs.io/en/master/usage/shell-prompts.html#bash-prompt'
+    echo '	powerline-daemon -q'
+    echo '	export POWERLINE_BASH_CONTINUATION=1'
+    echo '	export POWERLINE_BASH_SELECT=1'
+    echo '	. "$(nix-env -q --out-path --no-name 'python3.6-powerline-2.6')/lib/python3.6/site-packages/powerline/bindings/bash/powerline.sh"'
+    echo ""
+    echo '	# Lock and Load a custom theme file'
+    echo '	# location $HOME/.bash_it/themes/'
+    echo '	export BASH_IT_THEME="powerline"'
+    echo ""
+    echo '	# (Advanced): Uncomment this to make Bash-it reload itself automatically'
+    echo '	# after enabling or disabling aliases, plugins, and completions.'
+    echo '	export BASH_IT_AUTOMATIC_RELOAD_AFTER_CONFIG_CHANGE=1'
+    echo ""
+    echo '	# Load Bash It'
+    echo '	if [ -e "$BASH_IT/bash_it.sh" ]; then . "$BASH_IT/bash_it.sh"; fi'
+    echo 'fi'
     echo ""
   '';
 
