@@ -125,6 +125,13 @@ let g:syntastic_php_checkers = ['phpcs']
 let g:syntastic_php_phpcs_args = "--standard=$(nix-env -q --out-path --no-name 'composer-mediawiki-mediawiki-codesniffer')/share/php/composer-mediawiki-mediawiki-codesniffer/vendor/mediawiki/mediawiki-codesniffer/MediaWiki/ruleset.xml"
 
 let g:syntastic_python_checkers = ['flake8', 'pylint']
+" Black's default line length is 88 chars, but it will
+" sometimes make long lines, e.g.: 119 chars
+" https://github.com/python/black#line-length
+let g:syntastic_python_flake8_args="--ignore=E501"
+" If Black always limited to 88, the following might work:
+"let g:syntastic_python_flake8_args="--max-line-length=88"
+"let g:syntastic_python_pylint_post_args="--max-line-length=88"
 
 let g:syntastic_sh_checkers = ['shellcheck']
 " make syntastic call shellcheck with param to follow files
