@@ -1,7 +1,7 @@
-{ stdenv, python36 }:
+{ stdenv, python3 }:
 
 let
-  inherit (python36.pkgs) buildPythonApplication fetchPypi;
+  inherit (python3.pkgs) buildPythonApplication fetchPypi;
 in
 
 buildPythonApplication rec {
@@ -17,7 +17,7 @@ buildPythonApplication rec {
   # TODO patch or whatever to get the tests to pass
   doCheck = false;
 
-  propagatedBuildInputs = with python36.pkgs; [
+  propagatedBuildInputs = with python3.pkgs; [
     appdirs
     attrs
     setuptools

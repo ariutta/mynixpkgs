@@ -63,7 +63,9 @@ stdenv.mkDerivation rec {
     done
 
     ./install.sh --no-modify-config
+  '';
 
+  postFixup = ''
     echo ""
     echo "****************************************"
     echo "* Add the following to your ~/.profile *"
@@ -71,26 +73,29 @@ stdenv.mkDerivation rec {
     echo ""
     echo "export BASH_IT=\"\$HOME/.nix-profile/share/bash_it\""
     echo 'if [ -n "$BASH_VERSION" ] && [ -d "$BASH_IT" ]; then'
-    echo '	# Assume Bash'
+    echo '    # Assume Bash'
     echo ""
-    echo '	export PATH=$PATH:$BASH_IT'
+    echo '    export PATH=$PATH:$BASH_IT'
     echo ""
-    echo '	# http://powerline.readthedocs.io/en/master/usage/shell-prompts.html#bash-prompt'
-    echo '	powerline-daemon -q'
-    echo '	export POWERLINE_BASH_CONTINUATION=1'
-    echo '	export POWERLINE_BASH_SELECT=1'
-    echo '	. "$(nix-env -q --out-path --no-name 'python3.6-powerline-2.6')/lib/python3.6/site-packages/powerline/bindings/bash/powerline.sh"'
+    echo '    POWERLINE_PATH="$(nix-env -q --out-path --no-name python3.*-powerline.* | head -n 1)/lib/python3.*/site-packages/powerline/bindings/bash/powerline.sh"'
+    echo '    if [ -f $POWERLINE_PATH ]; then'
+    echo '        # http://powerline.readthedocs.io/en/master/usage/shell-prompts.html#bash-prompt'
+    echo '        powerline-daemon -q'
+    echo '        export POWERLINE_BASH_CONTINUATION=1'
+    echo '        export POWERLINE_BASH_SELECT=1'
+    echo '        . "$POWERLINE_PATH"'
     echo ""
-    echo '	# Lock and Load a custom theme file'
-    echo '	# location $HOME/.bash_it/themes/'
-    echo '	export BASH_IT_THEME="powerline"'
+    echo '        # Lock and Load a custom theme file'
+    echo '        # location $HOME/.bash_it/themes/'
+    echo '        export BASH_IT_THEME="powerline"'
+    echo '    fi'
     echo ""
-    echo '	# (Advanced): Uncomment this to make Bash-it reload itself automatically'
-    echo '	# after enabling or disabling aliases, plugins, and completions.'
-    echo '	export BASH_IT_AUTOMATIC_RELOAD_AFTER_CONFIG_CHANGE=1'
+    echo '    # Make Bash-it reload itself automatically after enabling'
+    echo '    # or disabling aliases, plugins, and completions.'
+    echo '    export BASH_IT_AUTOMATIC_RELOAD_AFTER_CONFIG_CHANGE=1'
     echo ""
-    echo '	# Load Bash It'
-    echo '	if [ -e "$BASH_IT/bash_it.sh" ]; then . "$BASH_IT/bash_it.sh"; fi'
+    echo '    # Load Bash It'
+    echo '    if [ -e "$BASH_IT/bash_it.sh" ]; then . "$BASH_IT/bash_it.sh"; fi'
     echo 'fi'
     echo ""
   '';

@@ -19,7 +19,7 @@ let
   # 3. Something else?
   vimCustomBuildInputs = import ./buildInputs.nix; 
   CUSTOM_PATH = builtins.unsafeDiscardStringContext ("\"" + builtins.concatStringsSep ":" (builtins.map (b: builtins.toString (b.outPath) + "/bin") vimCustomBuildInputs) + "\"");
-  POWER_LINE_ROOT = builtins.unsafeDiscardStringContext ("\"" + pkgs.python36Packages.powerline.outPath + "\"");
+  POWER_LINE_BASH_PATH = builtins.unsafeDiscardStringContext ("\"" + pkgs.python3Packages.powerline.outPath + "/lib/python3.*/site-packages/powerline/bindings/vim" + "\"");
 
   vim_configurable = pkgs.vim_configurable;
 
@@ -35,7 +35,7 @@ let
       # TODO does the powerline package automatically install the powerline fonts?
       #pkgs.powerline-fonts
       # NOTE: the PyPi name is powerline-status, but the Nix name is just powerline.
-      pkgs.python36Packages.powerline
+      pkgs.python3Packages.powerline
     ] ++ vimCustomBuildInputs;
   });
 
@@ -43,7 +43,7 @@ in
 
 vim_configured.customize {
     name = "vim";
-    vimrcConfig.customRC = builtins.replaceStrings ["CUSTOM_PATH_REPLACE_ME" "POWER_LINE_ROOT_REPLACE_ME"] [CUSTOM_PATH POWER_LINE_ROOT] (builtins.readFile ./.vimrc);
+    vimrcConfig.customRC = builtins.replaceStrings ["CUSTOM_PATH_REPLACE_ME" "POWER_LINE_BASH_PATH_REPLACE_ME"] [CUSTOM_PATH POWER_LINE_BASH_PATH] (builtins.readFile ./.vimrc);
 
     # Use the default plugin list shipped with nixpkgs
     vimrcConfig.vam.knownPlugins = pkgs.vimPlugins;
@@ -106,6 +106,12 @@ vim_configured.customize {
         #   If a file is .txt, tell vim it's delimited with:
         #     :set filetype=csv
         "csv"
+
+        # comment / uncomment
+        #   https://github.com/tpope/vim-commentary
+        #   comment: gc in visual mode
+        #   uncomment: gcgc on a commented section
+        "vim-commentary"
       ]; }
     ];
 }

@@ -20,9 +20,9 @@ in [
   pkgs.nodePackages.prettier
   # TODO: take a look at javascript-typescript-langserver
   pkgs.nodePackages.typescript
+  pkgs.python3Packages.jsbeautifier
   pkgs.php72Packages.php-cs-fixer
   pkgs.python3Packages.flake8
-  pkgs.python3Packages.jsbeautifier
   #pkgs.python3Packages.pylint
 
   # sqlparse is on the command line as sqlformat.

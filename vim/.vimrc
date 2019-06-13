@@ -18,8 +18,8 @@ let $PATH = CUSTOM_PATH_REPLACE_ME . ':' . $PATH
 
 " Powerline:
 " add bindings to Vim's runtimepath:
-" default.nix handles replacing POWER_LINE_ROOT_REPLACE_ME
-exe 'set rtp+=' . expand(POWER_LINE_ROOT_REPLACE_ME . '/lib/python3.6/site-packages/powerline/bindings/vim')
+" default.nix handles replacing POWER_LINE_BASH_PATH_REPLACE_ME
+exe 'set rtp+=' . expand(POWER_LINE_BASH_PATH_REPLACE_ME)
 " make status bar always show:
 set laststatus=2
 " use color
