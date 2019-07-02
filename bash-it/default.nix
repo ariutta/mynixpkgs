@@ -1,7 +1,11 @@
 {
+bashInteractive,
 fetchFromGitHub,
 gawk,
-stdenv }:
+stdenv,
+enabledAliases ? [],
+enabledCompletions ? [ "bash-it" "git" "npm" "ssh" "tmux" ],
+enabledPlugins ? [] }:
 
 with builtins;
 
@@ -35,22 +39,30 @@ stdenv.mkDerivation rec {
     sha256 = "1zzi4iwznqsdy7kzkqh9clhvqlzh3bym1cfr1fhg701bnnnx8z0x";
   };
 
-#  #doCheck = true;
-#
-#  checkPhase = ''
-#  '';
-
-#  buildCommand = ''
-#    patchShebangs ./install.sh
-#  '';
-
   awkPattern = "[`(|[:space:]]awk[[:space:]]";
+
+  buildPhase = ''
+    patchShebangs ./install.sh
+  '';
+
+  doCheck = true;
+
+  checkPhase = ''
+    if [ ! -e "./bash_it.sh" ]; then
+      echo "test failed: bash_it.sh does not exist"
+      exit 1;
+    fi
+
+    ${bashInteractive}/bin/bash -c 'export BASH_IT="./"; . bash_it.sh; bash-it --help > /dev/null'
+  '';
+
+  enabledAliasesStr = concatStringsSep " " (filter (x: isString x) enabledAliases);
+  enabledCompletionsStr = concatStringsSep " " (filter (x: isString x) enabledCompletions);
+  enabledPluginsStr = concatStringsSep " " (filter (x: isString x) enabledPlugins);
 
   installPhase = ''
     targetDir="$out/share/bash_it"
     mkdir -p $targetDir
-
-    patchShebangs ./install.sh
 
     for content in aliases bash_it.sh completion custom install.sh lib plugins template themes uninstall.sh
     do
@@ -63,9 +75,17 @@ stdenv.mkDerivation rec {
     done
 
     ./install.sh --no-modify-config
+
+    # Installing the specific completions specified.
+    # We're using bashInteractive because bash-it needs the compgen tool,
+    # and non-interactive bash doesn't have it.
+    (${bashInteractive}/bin/bash -c 'export BASH_IT="$out/share/bash_it"; cd "$BASH_IT"; . bash_it.sh; bash-it enable alias ${enabledAliasesStr}')
+    (${bashInteractive}/bin/bash -c 'export BASH_IT="$out/share/bash_it"; cd "$BASH_IT"; . bash_it.sh; bash-it enable completion ${enabledCompletionsStr}')
+    (${bashInteractive}/bin/bash -c 'export BASH_IT="$out/share/bash_it"; cd "$BASH_IT"; . bash_it.sh; bash-it enable plugin ${enabledPluginsStr}')
   '';
 
   postFixup = ''
+    # TODO: could (at least some of) the powerline content be moved into its own Nix package?
     echo ""
     echo "****************************************"
     echo "* Add the following to your ~/.profile *"
@@ -89,10 +109,6 @@ stdenv.mkDerivation rec {
     echo '        # location $HOME/.bash_it/themes/'
     echo '        export BASH_IT_THEME="powerline"'
     echo '    fi'
-    echo ""
-    echo '    # Make Bash-it reload itself automatically after enabling'
-    echo '    # or disabling aliases, plugins, and completions.'
-    echo '    export BASH_IT_AUTOMATIC_RELOAD_AFTER_CONFIG_CHANGE=1'
     echo ""
     echo '    # Load Bash It'
     echo '    if [ -e "$BASH_IT/bash_it.sh" ]; then . "$BASH_IT/bash_it.sh"; fi'
