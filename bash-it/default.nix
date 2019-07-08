@@ -60,6 +60,32 @@ stdenv.mkDerivation rec {
   enabledCompletionsStr = concatStringsSep " " (filter (x: isString x) enabledCompletions);
   enabledPluginsStr = concatStringsSep " " (filter (x: isString x) enabledPlugins);
 
+  # TODO: when I run "sudo nixos-rebuild switch", I get the error below, most
+  # likely because whatever is doing the reload isn't using interactive bash.
+  # To see how I fixed for this for installation, see the comment in the installPhase.
+  #
+  # reloading user units for ariutta...
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 121: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 122: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 123: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 124: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 125: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 126: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---git.completion.bash: line 2752: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---git.completion.bash: line 2752: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---ssh.completion.bash: line 40: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---tmux.completion.bash: line 185: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 121: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 122: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 123: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 124: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 125: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 126: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---git.completion.bash: line 2752: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---git.completion.bash: line 2752: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---ssh.completion.bash: line 40: complete: command not found
+  # /home/ariutta/.nix-profile/share/bash_it/enabled/350---tmux.completion.bash: line 185: complete: command not found
+
   installPhase = ''
     targetDir="$out/share/bash_it"
     mkdir -p $targetDir
