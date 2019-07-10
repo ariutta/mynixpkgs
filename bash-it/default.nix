@@ -43,6 +43,8 @@ stdenv.mkDerivation rec {
 
   buildPhase = ''
     patchShebangs ./install.sh
+
+    #substituteInPlace bash_it.sh --replace "/usr/bin/env bash" "${bashInteractive}/bin/bash"
   '';
 
   doCheck = true;
@@ -62,7 +64,8 @@ stdenv.mkDerivation rec {
 
   # TODO: when I run "sudo nixos-rebuild switch", I get the error below, most
   # likely because whatever is doing the reload isn't using interactive bash.
-  # To see how I fixed for this for installation, see the comment in the installPhase.
+  # I tried patching these files in the installPhase, but I'm still getting the same error.
+  # I also tried patching bash_it.sh in the buildPhase. Still same error.
   #
   # reloading user units for ariutta...
   # /home/ariutta/.nix-profile/share/bash_it/enabled/350---bash-it.completion.bash: line 121: complete: command not found
@@ -108,6 +111,12 @@ stdenv.mkDerivation rec {
     (${bashInteractive}/bin/bash -c 'export BASH_IT="$out/share/bash_it"; cd "$BASH_IT"; . bash_it.sh; bash-it enable alias ${enabledAliasesStr}')
     (${bashInteractive}/bin/bash -c 'export BASH_IT="$out/share/bash_it"; cd "$BASH_IT"; . bash_it.sh; bash-it enable completion ${enabledCompletionsStr}')
     (${bashInteractive}/bin/bash -c 'export BASH_IT="$out/share/bash_it"; cd "$BASH_IT"; . bash_it.sh; bash-it enable plugin ${enabledPluginsStr}')
+
+#    for f in $out/share/bash_it/enabled/350*.completion.bash
+#    do
+#      # Note: some of these files start with shebangs but some do not
+#      sed -i '1s_^_#!${bashInteractive}/bin/bash\n_' "$f"
+#    done
   '';
 
   postFixup = ''
