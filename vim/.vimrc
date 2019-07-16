@@ -9,17 +9,22 @@ filetype plugin indent on
 
 syntax enable
 
-" Adding CLI deps for Neoformat and Syntastic
-" default.nix handles replacing CUSTOM_PATH_REPLACE_ME with a PATH
-" variable containing the bin dir of each dep in ./buildInputs
-let $PATH = CUSTOM_PATH_REPLACE_ME . ':' . $PATH
-" TODO is the option above a good way to handle this? See issue
+" Adding CLI deps for Neoformat and Syntastic.
+" In default.nix, we specify replacing CUSTOM_PATH_REPLACE_ME with a
+" PATH variable containing the bin dir of each dep in ./buildInputs.
+" In here, we add that variable to vim's runtimepath, which is
+" essentially the PATH variable active inside vim.
+" TODO is this option a good way to handle this issue? See issue
 " https://github.com/NixOS/nixpkgs/issues/41613#issuecomment-396074416
+exe 'set rtp+=' . expand("CUSTOM_PATH_REPLACE_ME")
+" The line above is similar to the one below, but it's better, because
+" it avoids conflicts it by essentially namespacing it under vim:
+"let $PATH = "CUSTOM_PATH_REPLACE_ME" . ':' . $PATH
 
 " Powerline:
 " add bindings to Vim's runtimepath:
-" default.nix handles replacing POWER_LINE_BASH_PATH_REPLACE_ME
-exe 'set rtp+=' . expand(POWER_LINE_BASH_PATH_REPLACE_ME)
+" default.nix handles replacing POWER_LINE_VIM_PATH_REPLACE_ME
+exe 'set rtp+=' . expand("POWER_LINE_VIM_PATH_REPLACE_ME")
 " make status bar always show:
 set laststatus=2
 " use color
@@ -92,6 +97,11 @@ let g:neoformat_enabled_xml = ['tidy']
 " then enable the following line:
 "let g:neoformat_enabled_sql = ['pg_format']
 " And add *.sql to the list of file extensions for Neoformat
+
+" JS/TS/JSON indent settings: match prettier defaults
+autocmd Filetype javascript setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
+autocmd Filetype typescript setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
+autocmd Filetype json setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
 
 " Autoformat on save for filetypes specified:
 autocmd BufWritePre *.css,*.html,*.js,*.jsx,*.json,*.md,*.php,*.py,*.sh,*.ts,*.tsx,*.xml Neoformat

@@ -16,10 +16,11 @@ let
   # 2. Specify Black as a dependency in ../../common.nix
   #    For now, I'm using a hack by specifying custom.black in common.nix,
   #    but I should be able to specify all my Vim deps in here.
-  # 3. Something else?
+  # 3. Add Black to the vim runtimepath (rtp), which appears to be basically
+  #    the PATH variable that applies for anything running inside vim.
   vimCustomBuildInputs = import ./buildInputs.nix; 
-  CUSTOM_PATH = builtins.unsafeDiscardStringContext ("\"" + builtins.concatStringsSep ":" (builtins.map (b: builtins.toString (b.outPath) + "/bin") vimCustomBuildInputs) + "\"");
-  POWER_LINE_BASH_PATH = builtins.unsafeDiscardStringContext ("\"" + pkgs.python3Packages.powerline.outPath + "/lib/python3.*/site-packages/powerline/bindings/vim" + "\"");
+  CUSTOM_PATH = builtins.unsafeDiscardStringContext (builtins.concatStringsSep ":" (builtins.map (b: builtins.toString (b.outPath) + "/bin") vimCustomBuildInputs));
+  POWER_LINE_VIM_PATH = builtins.unsafeDiscardStringContext (pkgs.python3Packages.powerline.outPath + "/lib/python3.*/site-packages/powerline/bindings/vim");
 
   vim_configurable = pkgs.vim_configurable;
 
@@ -43,7 +44,7 @@ in
 
 vim_configured.customize {
     name = "vim";
-    vimrcConfig.customRC = builtins.replaceStrings ["CUSTOM_PATH_REPLACE_ME" "POWER_LINE_BASH_PATH_REPLACE_ME"] [CUSTOM_PATH POWER_LINE_BASH_PATH] (builtins.readFile ./.vimrc);
+    vimrcConfig.customRC = builtins.replaceStrings ["CUSTOM_PATH_REPLACE_ME" "POWER_LINE_VIM_PATH_REPLACE_ME"] [CUSTOM_PATH POWER_LINE_VIM_PATH] (builtins.readFile ./.vimrc);
 
     # Use the default plugin list shipped with nixpkgs
     vimrcConfig.vam.knownPlugins = pkgs.vimPlugins;
@@ -59,16 +60,16 @@ vim_configured.customize {
         # NOTE: using vim-nix instead of this: { config.vim.ftNix = true; }
         "vim-nix"
 
-        # This should more properly be named dracula or dracula-them-vim
+        # This should more properly be named dracula or dracula-theme-vim
         # https://draculatheme.com/vim/
         "vim"
 
-        # make vim syntax aware
+        # make vim syntax-aware
         "Syntastic"
         # syntax providers (see dependencies in vim_configured.buildInputs)
+        "typescript-vim"
         "vim-javascript"
         "vim-jsdoc"
-        "typescript-vim"
 
         # format code (see dependencies in vim_configured.buildInputs)
         "neoformat"
