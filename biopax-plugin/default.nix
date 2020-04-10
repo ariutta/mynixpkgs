@@ -11,8 +11,19 @@ in
 stdenv.mkDerivation rec {
   name = "${baseName}-${version}";
 
-  # should this be nativeBuildInputs or just buildInputs?
-  nativeBuildInputs = [ unzip ant jdk ];
+  # nativeBuildInputs shouldn't persist as run-time dependencies.
+  #   From the manual:
+  #   "Since these packages are able to be run at build time, that are added to
+  #    the PATH, as described above. But since these packages only are
+  #    guaranteed to be able to run then, they shouldn't persist as run-time
+  #    dependencies. This isn't currently enforced, but could be in the future."
+  nativeBuildInputs = [ unzip ant ];
+
+  # buildInputs may be used at run-time but are only on the PATH at build-time.
+  #   From the manual:
+  #   "These often are programs/libraries used by the new derivation at
+  #    run-time, but that isn't always the case."
+  buildInputs = [ jdk ];
 
   javaPath = "${jdk.jre}/bin/java";
 
