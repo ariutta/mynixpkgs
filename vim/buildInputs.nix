@@ -5,22 +5,21 @@
 # https://github.com/NixOS/nixpkgs/issues/26146
 ###################################################
 
-with import <nixpkgs> { config.allowUnfree = true; };
-let
-  custom = import ../all-custom.nix;
-in [
+{ pkgs, pgFormatter, sqlint }:
+
+[
   pkgs.python3
   ####################
   # Deps for Neoformat
   ####################
-  custom.black
+  pkgs.black
   pkgs.html-tidy
-  custom.perlPackages.pgFormatter
+  pgFormatter
   pkgs.nodePackages.prettier
   # TODO: take a look at javascript-typescript-langserver
   pkgs.nodePackages.typescript
   pkgs.python3Packages.jsbeautifier
-  pkgs.php72Packages.php-cs-fixer
+  pkgs.php.packages.php-cs-fixer
   pkgs.jq
 
   # Python, Python Language Server & PYLS deps
@@ -34,7 +33,7 @@ in [
     pylint
     pyls-isort
     pyls-mypy
-    custom.black
+    pkgs.black
   ]))
 
   # sqlparse is on the command line as sqlformat.
@@ -48,7 +47,7 @@ in [
   #####################################
   #custom.mediawiki-codesniffer
   # TODO phpcs is installed by mediawiki-codesniffer. Should we still use the following line?
-  #pkgs.php72Packages.phpcs
+  #pkgs.php.packages.phpcs
 
   # TODO look into using phpstan:
   # I need to create a Nix expression for installing phpstan.
@@ -62,5 +61,5 @@ in [
   # https://github.com/NixOS/nixpkgs/blob/release-18.03/pkgs/development/ruby-modules/bundler-app/default.nix
   # it missed it by 5 days (Apr 4 vs. Apr 9):
   # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/ruby-modules/bundler-app/default.nix
-  custom.sqlint
+  sqlint
 ]

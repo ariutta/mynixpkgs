@@ -5,9 +5,9 @@
 
 let self = _self // overrides; _self = with self; {
 
-  inherit (pkgs) buildPerlPackage fetchFromGitHub stdenv perl gnused glibcLocales;
+  inherit (pkgs) buildPerlPackage fetchFromGitHub lib perl gnused glibcLocales;
 
-  inherit (stdenv.lib) maintainers;
+  inherit (lib) maintainers;
 
   # Helper functions for packages that use Module::Build to build.
   pgFormatter = buildPerlPackage rec {
@@ -54,7 +54,7 @@ let self = _self // overrides; _self = with self; {
       description = "A PostgreSQL SQL syntax beautifier that can work as a console program or as a CGI.";
       homepage = https://github.com/darold/pgFormatter;
       maintainers = with maintainers; [ "ariutta" ];
-      license = with stdenv.lib.licenses; [ postgresql artistic2 ];
+      license = with lib.licenses; [ postgresql artistic2 ];
     };
   };
 

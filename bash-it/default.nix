@@ -1,11 +1,11 @@
-{
-bashInteractive,
-fetchFromGitHub,
-gawk,
-stdenv,
-enabledAliases ? [],
-enabledCompletions ? [ "bash-it" "git" "npm" "ssh" "tmux" ],
-enabledPlugins ? [] }:
+{ stdenv
+, lib
+, bashInteractive
+, fetchFromGitHub
+, gawk
+, enabledAliases ? []
+, enabledCompletions ? [ "bash-it" "git" "npm" "ssh" "tmux" ]
+, enabledPlugins ? [] }:
 
 with builtins;
 
@@ -151,7 +151,7 @@ stdenv.mkDerivation rec {
     echo ""
   '';
 
-  meta = with stdenv.lib;
+  meta = with lib;
     { description = "A community Bash framework";
       longDescription = ''
 	Bash-it is a collection of community Bash commands and scripts for Bash 3.2+. (And a shameless ripoff of oh-my-zsh 😃)

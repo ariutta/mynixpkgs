@@ -1,10 +1,10 @@
-{
-fetchFromGitHub,
-installShellFiles,
-argbash,
-help2man,
-gnused,
-stdenv }:
+{ stdenv
+, lib
+, fetchFromGitHub
+, installShellFiles
+, argbash
+, help2man
+, gnused }:
 
 with builtins;
 
@@ -90,7 +90,7 @@ stdenv.mkDerivation rec {
     #installShellCompletion share/completions/completions.{bash,fish,zsh}
   '';
 
-  meta = with stdenv.lib;
+  meta = with lib;
     { description = "Connect to your jupyterlab server";
       homepage = https://github.com/ariutta/jupyterlab-connect;
       license = licenses.mit;

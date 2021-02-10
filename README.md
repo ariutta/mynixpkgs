@@ -2,16 +2,35 @@
 
 ## Test a package expression
 
+### Via `nix-build`
+
 ```sh
 cd ./abc_dir
 nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix {}'
 ./result/bin/abc --help
 ```
 
+### Via `nix repl`:
+
+```
+nix repl '<nixpkgs>'
+pkgs = import <nixpkgs> { overlays=[(import ./python-overlay.nix)]; }
+:b pkgs.python3Packages.callPackage ./nixpkgs/jupyter_server/default.nix {}
+```
+
+or alternatively:
+
+```
+nix repl '<nixpkgs>'
+overlays = [(import ./python-overlay.nix)]
+pkgs = import <nixpkgs> { inherit overlays; }
+:b pkgs.python3Packages.callPackage ./nixpkgs/jupyter_server/default.nix {}
+```
+
 ## Python
 
 Generate Nix expressions for python packages by using pypi2nix, if possible. Otherwise, create manually.
-In the future, add these packages to [python-packages.nix](https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/python-packages.nix) and make a pull request.
+In the future, consider adding the manually-created packages to [python-packages.nix](https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/python-packages.nix) and make a pull request.
 
 ### Applications
 

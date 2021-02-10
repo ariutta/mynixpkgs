@@ -1,4 +1,4 @@
-{ stdenv, python3 }:
+{ lib, python3 }:
 
 let
   inherit (python3.pkgs) buildPythonApplication fetchPypi;
@@ -53,7 +53,7 @@ buildPythonApplication rec {
     netcdf4
   ];
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Exploratory analysis of Bayesian models.";
     longDescription = ''
       ArviZ (pronounced "AR-vees") is a Python package for exploratory analysis

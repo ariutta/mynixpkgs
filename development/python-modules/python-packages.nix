@@ -1,4 +1,4 @@
-with import <nixpkgs> { config.allowUnfree = true; };
+{ callPackage }:
 
 {
   arviz = callPackage ./arviz/default.nix {};

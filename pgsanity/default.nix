@@ -1,4 +1,4 @@
-{ stdenv, python3, postgresql }:
+{ lib, python3, postgresql }:
 
 let
   inherit (python3.pkgs) buildPythonApplication fetchPypi;
@@ -20,7 +20,7 @@ buildPythonApplication rec {
     postgresql
   ];
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Check syntax of postgresql sql files.";
     homepage = "https://github.com/markdrago/pgsanity";
     license = licenses.mit;

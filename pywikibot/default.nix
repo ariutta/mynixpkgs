@@ -1,4 +1,4 @@
-{ lib, pkgs, buildPythonPackage, python37Packages, fetchgit }:
+{ lib, pkgs, buildPythonPackage, python3Packages, fetchgit }:
 
 buildPythonPackage rec {
   pname = "pywikibot";
@@ -35,7 +35,7 @@ buildPythonPackage rec {
 
   doCheck = false;
   buildInputs = [  ];
-  propagatedBuildInputs = [ python37Packages.requests ];
+  propagatedBuildInputs = [ python3Packages.requests ];
 
   meta = with lib; {
     description = "Python MediaWiki Bot Framework";

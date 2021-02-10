@@ -7,6 +7,7 @@
   getopt,
   imagemagick7,
   jdk,
+  jre,
   makeDesktopItem,
   parallel,
   stdenv,
@@ -39,13 +40,13 @@ stdenv.mkDerivation rec {
   #    the PATH, as described above. But since these packages only are
   #    guaranteed to be able to run then, they shouldn't persist as run-time
   #    dependencies. This isn't currently enforced, but could be in the future."
-  nativeBuildInputs = [ ant bc imagemagick7 parallel sensible-jvm-opts unzip xpdf ];
+  nativeBuildInputs = [ ant bc imagemagick7 jdk parallel sensible-jvm-opts unzip xpdf ];
 
   # buildInputs may be used at run-time but are only on the PATH at build-time.
   #   From the manual:
   #   "These often are programs/libraries used by the new derivation at
   #    run-time, but that isn't always the case."
-  buildInputs = [ coreutils getopt jdk xmlstarlet ] ++ map (d: d.src) datasources;
+  buildInputs = [ coreutils getopt jre xmlstarlet ] ++ map (d: d.src) datasources;
 
   # aliases for command-line tool binaries that we keep using in production
   # (after the initial unpack/build/install phase).
@@ -53,7 +54,7 @@ stdenv.mkDerivation rec {
   #       echo, eval, exit, shift
   dateAlias = "${coreutils}/bin/date";
   getoptAlias = "${getopt}/bin/getopt";
-  javaAlias = "${jdk.jre}/bin/java";
+  javaAlias = "${jre}/bin/java";
   xmlstarletAlias = "${xmlstarlet}/bin/xmlstarlet";
 
   bridgedbSettings = fetchurl {
@@ -649,7 +650,7 @@ export -f gpml2many
     genericName = "Pathway Editor";
     comment = meta.description;
     # See https://specifications.freedesktop.org/menu-spec/latest/apa.html
-    categories = "Editor;Science;Biology;DataVisualization;";
+    categories = "X-Editor;Science;Biology;DataVisualization;";
     mimeType = "application/gpml+xml";
     # TODO what is the terminal option?
     terminal = "false";

@@ -1,4 +1,4 @@
-{ pkgs, callPackage }:
+{ pkgs, callPackage, pgFormatter, sqlint }:
 with builtins;
 
 # TODO: getting this warning when installing:
@@ -20,11 +20,11 @@ let
   #    docs also say, "On first run, the plugin creates its own virtualenv using
   #    the right Python version and automatically installs Black."
   # 2. Specify Black as a dependency in ../../common.nix
-  #    For now, I'm using a hack by specifying custom.black in common.nix,
+  #    For now, I'm using a hack by specifying pkgs.black in common.nix,
   #    but I should be able to specify all my Vim deps in here.
   # 3. Add Black to the vim runtimepath (rtp), which appears to be basically
   #    the PATH variable that applies for anything running inside vim.
-  vimCustomBuildInputs = import ./buildInputs.nix; 
+  vimCustomBuildInputs = import ./buildInputs.nix { inherit pkgs pgFormatter sqlint; }; 
   CUSTOM_PATH = unsafeDiscardStringContext (concatStringsSep ":" (map (b: toString (b.outPath) + "/bin") vimCustomBuildInputs));
   POWER_LINE_VIM_PATH = unsafeDiscardStringContext (pkgs.python3Packages.powerline.outPath + "/lib/python3.*/site-packages/powerline/bindings/vim");
   PYLS_PATH = unsafeDiscardStringContext (pkgs.python3Packages.python-language-server.outPath + "/bin");

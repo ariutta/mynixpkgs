@@ -1,4 +1,4 @@
-{ stdenv, python3 }:
+{ lib, python3 }:
 
 let
   inherit (python3.pkgs) buildPythonApplication fetchPypi;
@@ -19,7 +19,7 @@ buildPythonApplication rec {
     google_api_python_client
   ];
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "A simple command line utility that sends your stdin to Google sheets.";
     longDescription = ''
       A simple command line utility that sends your stdin to Google sheets.

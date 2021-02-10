@@ -1,4 +1,4 @@
-{ stdenv, python3 }:
+{ lib, python3 }:
 
 let
   inherit (python3.pkgs) buildPythonApplication fetchPypi;
@@ -25,7 +25,7 @@ buildPythonApplication rec {
     requests_oauthlib
   ];
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Flask blueprint to run OAuth against MediaWiki's extension:OAuth.";
     homepage = "https://github.com/valhallasw/flask-mwoauth";
     license = licenses.mit;
