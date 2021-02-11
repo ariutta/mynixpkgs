@@ -5,10 +5,9 @@
 
 with builtins;
 let
-  pkgs = import <nixpkgs> { inherit overlays; config.allowUnfree = true; };
+  pkgs = import <nixpkgs> { config.allowUnfree = true; };
   buildPythonPackage = pkgs.python3.pkgs.buildPythonPackage;
   mynixpkgs = import ./default.nix { inherit pkgs buildPythonPackage; };
-  overlays = [];
 in
   pkgs.stdenv.mkDerivation rec {
     name = "env";
@@ -44,12 +43,36 @@ in
       (python3.buildEnv.override {
         ignoreCollisions = true;
         extraLibs = [
-          python3Packages.requests
+          mynixpkgs.python3Packages.confusable-homoglyphs
+          mynixpkgs.python3Packages.homoglyphs
+          mynixpkgs.python3Packages.jupyter-resource-usage
+          mynixpkgs.python3Packages.jupyterlab-topbar
+          mynixpkgs.python3Packages.json5
+          mynixpkgs.python3Packages.nbclassic
+          mynixpkgs.python3Packages.jupyter_packaging
+          mynixpkgs.python3Packages.jupyter_server
+          mynixpkgs.python3Packages.jupyterlab_server
+          mynixpkgs.python3Packages.jupyterlab
+          mynixpkgs.python3Packages.jupyter_lsp
+          mynixpkgs.python3Packages.simpervisor
+          mynixpkgs.python3Packages.jupyter-server-proxy
+          mynixpkgs.python3Packages.jupyterlab-lsp
+          mynixpkgs.python3Packages.jupyterlab_code_formatter
+          mynixpkgs.python3Packages.jupyterlab_hide_code
+          mynixpkgs.python3Packages.jupyterlab_vim
+          mynixpkgs.python3Packages.jupyterlab-vimrc
+          mynixpkgs.python3Packages.aquirdturtle_collapsible_headings
+          mynixpkgs.python3Packages.jupyterlab-system-monitor
+          mynixpkgs.python3Packages.jupyterlab-drawio
+          mynixpkgs.python3Packages.nb_black
+          mynixpkgs.python3Packages.seaborn
+          mynixpkgs.python3Packages.skosmos_client
+          mynixpkgs.python3Packages.wikidata2df
+          mynixpkgs.python3Packages.homoglyphs
+          mynixpkgs.python3Packages.confusable-homoglyphs
+          mynixpkgs.python3Packages.pyahocorasick
 
-#          #packages."homoglyphs"
-#          #packages."confusable-homoglyphs"
-#          #packages."homoglyphs"
-#          #packages."bs4"
+          pkgs.python3Packages.requests
         ];
       })
 
