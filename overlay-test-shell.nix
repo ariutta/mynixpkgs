@@ -79,7 +79,9 @@ in
           homoglyphs
           confusable-homoglyphs
           pyahocorasick
+          ndex2
 
+          # also try one python pkg from nixpkgs
           requests
         ];
       })

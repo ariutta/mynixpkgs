@@ -58,6 +58,7 @@ let
       inherit jupyterlab;
     };
     nb_black = selfPythonPackages.callPackage ./development/python-modules/nb_black/default.nix {};
+    ndex2 = selfPythonPackages.callPackage ./development/python-modules/ndex2/default.nix {};
     seaborn = selfPythonPackages.callPackage ./development/python-modules/seaborn/default.nix {};
     skosmos_client = selfPythonPackages.callPackage ./development/python-modules/skosmos_client/default.nix {};
     wikidata2df = selfPythonPackages.callPackage ./development/python-modules/wikidata2df/default.nix {};
