@@ -1,1 +1,1 @@
-./all-custom.nix
+overlay.nix
