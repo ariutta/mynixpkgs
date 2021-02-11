@@ -26,11 +26,12 @@ in
     # Customizable development requirements
     buildInputs = with pkgs; [
       bash-it
-      jupyterlab-connect
 
       # TODO: this gives a warning:
       # patchelf: cannot find section '.dynamic'. The input file is most likely statically linked
       java-buildpack-memory-calculator
+
+      jupyterlab-connect
 
       pathvisio
       pgsanity
@@ -51,35 +52,33 @@ in
       (python3.buildEnv.override {
         ignoreCollisions = true;
         extraLibs = with python3Packages; [
+          aquirdturtle_collapsible_headings
           confusable-homoglyphs
           homoglyphs
-          jupyter-resource-usage
-          jupyterlab-topbar
           json5
-          nbclassic
-          jupyter_packaging
-          jupyter_server
-          jupyterlab_server
-          jupyterlab
           jupyter_lsp
-          simpervisor
+          jupyter_packaging
+          jupyter-resource-usage
+          jupyter_server
           jupyter-server-proxy
-          jupyterlab-lsp
+          jupyterlab
           jupyterlab_code_formatter
+          jupyterlab-drawio
           jupyterlab_hide_code
+          jupyterlab-lsp
+          jupyterlab_server
+          jupyterlab-system-monitor
+          jupyterlab-topbar
           jupyterlab_vim
           jupyterlab-vimrc
-          aquirdturtle_collapsible_headings
-          jupyterlab-system-monitor
-          jupyterlab-drawio
           nb_black
+          nbclassic
+          ndex2
+          pyahocorasick
           seaborn
           skosmos_client
+          simpervisor
           wikidata2df
-          homoglyphs
-          confusable-homoglyphs
-          pyahocorasick
-          ndex2
 
           # also try one python pkg from nixpkgs
           requests
