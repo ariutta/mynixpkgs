@@ -6,8 +6,18 @@
 
 ```sh
 cd ./abc_dir
-nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix {}'
+nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix {}' -K
 ./result/bin/abc --help
+rm result
+```
+
+For example:
+
+```
+cd pathvisio
+nix-build -E 'with import <nixpkgs> {}; let java-buildpack-memory-calculator = callPackage ../java-buildpack-memory-calculator/default.nix {}; in callPackage ./default.nix { inherit java-buildpack-memory-calculator; }' -K
+./result/bin/abc --help
+rm result
 ```
 
 ### Via `nix repl`:

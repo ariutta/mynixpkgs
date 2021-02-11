@@ -27,9 +27,7 @@ in
       # patchelf: cannot find section '.dynamic'. The input file is most likely statically linked
       mynixpkgs.java-buildpack-memory-calculator
 
-#      # can't find jre
-      #mynixpkgs.pathvisio
-
+      mynixpkgs.pathvisio
       mynixpkgs.perlPackages.pgFormatter
       mynixpkgs.pgsanity
       mynixpkgs.privoxy

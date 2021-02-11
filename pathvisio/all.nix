@@ -1,10 +1,11 @@
-{ callPackage,
-fetchzip,
-headless,
-genes,
-interactions,
-metabolites,
-memory
+{ callPackage
+, fetchzip
+, headless
+, genes
+, interactions
+, metabolites
+, memory
+, java-buildpack-memory-calculator
 }:
 
 with builtins;
@@ -22,7 +23,7 @@ in
     {
       name = organism;
       value = callPackage ./common.nix {
-        inherit headless memory organism;
+        inherit headless memory organism java-buildpack-memory-calculator;
         datasources = []
         ++ (if genes == "local" then [{
           src = (getAttr organism datasourcesLocal).src;

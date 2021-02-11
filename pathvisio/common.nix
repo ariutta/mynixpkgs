@@ -1,23 +1,25 @@
-{ ant,
-  bc,
-  callPackage,
-  coreutils,
-  fetchFromGitHub,
-  fetchurl,
-  getopt,
-  imagemagick7,
-  jdk,
-  jre,
-  makeDesktopItem,
-  parallel,
-  stdenv,
-  unzip,
-  xmlstarlet,
-  xpdf,
-  memory,
-  headless ? false,
-  organism ? "Homo sapiens",
-  datasources ? [] }:
+{ ant
+, bc
+, callPackage
+, coreutils
+, fetchFromGitHub
+, fetchurl
+, getopt
+, imagemagick7
+, jdk8
+, jre8
+, makeDesktopItem
+, parallel
+, stdenv
+, lib
+, unzip
+, xmlstarlet
+, poppler_utils # for pdftocairo
+, memory
+, java-buildpack-memory-calculator
+, headless ? false
+, organism ? "Homo sapiens"
+, datasources ? [] }:
 # TODO: allow for specifying plugins to install
 #       How? I don't think we can symlink into
 #       the user's $HOME/.PathVisio dir during
@@ -29,7 +31,9 @@ with builtins;
 let
   baseName = "PathVisio";
   version = "3.3.0";
-  sensible-jvm-opts = callPackage ./sensible-jvm-opts.nix {}; 
+  sensible-jvm-opts = callPackage ./sensible-jvm-opts.nix {
+    inherit lib stdenv coreutils fetchurl java-buildpack-memory-calculator;
+  }; 
 in
 stdenv.mkDerivation rec {
   name = replaceStrings [" "] ["_"] (concatStringsSep "-" (filter (x: isString x) [baseName version organism]));
@@ -40,22 +44,16 @@ stdenv.mkDerivation rec {
   #    the PATH, as described above. But since these packages only are
   #    guaranteed to be able to run then, they shouldn't persist as run-time
   #    dependencies. This isn't currently enforced, but could be in the future."
-  nativeBuildInputs = [ ant bc imagemagick7 jdk parallel sensible-jvm-opts unzip xpdf ];
+  nativeBuildInputs = [ ant bc imagemagick7 jdk8 parallel poppler_utils sensible-jvm-opts unzip ];
 
   # buildInputs may be used at run-time but are only on the PATH at build-time.
   #   From the manual:
   #   "These often are programs/libraries used by the new derivation at
   #    run-time, but that isn't always the case."
-  buildInputs = [ coreutils getopt jre xmlstarlet ] ++ map (d: d.src) datasources;
+  #buildInputs = [ ];
 
-  # aliases for command-line tool binaries that we keep using in production
-  # (after the initial unpack/build/install phase).
-  # NOTE: did not alias the following:
-  #       echo, eval, exit, shift
-  dateAlias = "${coreutils}/bin/date";
-  getoptAlias = "${getopt}/bin/getopt";
-  javaAlias = "${jre}/bin/java";
-  xmlstarletAlias = "${xmlstarlet}/bin/xmlstarlet";
+  # I think propagatedBuildInputs may stay on the path at run-time.
+  propagatedBuildInputs = [ coreutils getopt jre8 xmlstarlet ] ++ map (d: d.src) datasources;
 
   bridgedbSettings = fetchurl {
     url = "http://repository.pathvisio.org/plugins/pvplugins-bridgedbSettings/1.0.0/pvplugins-bridgedbSettings-1.0.0.jar";
@@ -67,22 +65,21 @@ stdenv.mkDerivation rec {
   PHASHSUMS = ./PHASHSUMS;
   SHA256SUMS = ./SHA256SUMS;
   # To reset sums, run the following:
-  #     mv ./PHASHSUMS ./PHASHSUMS-old
-  #     mv ./SHA256SUMS ./SHA256SUMS-old
-  #     touch ./PHASHSUMS ./SHA256SUMS
-  #     nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix { }' -K
+  #     cd ./pathvisio
+  #     nix-build -E 'with import <nixpkgs> {}; let java-buildpack-memory-calculator = callPackage ../java-buildpack-memory-calculator/default.nix {}; in callPackage ./default.nix { inherit java-buildpack-memory-calculator; }' -K
   #
+  #     The output will be in a <testResultsDir>, e.g., ${src}/test-results
   #     Manually verify the output(s) in <testResultsDir> that failed.
+  #
   #     If you don't remember which failed, you can diff as shown below,
   #     but this method is really only useful for SHA256SUMS.
   #     PHASHSUMS change slightly even when things are OK.
-  #     diff ./PHASHSUMS-old <testResultsDir>/PHASHSUMS
-  #     diff ./SHA256SUMS-old <testResultsDir>/SHA256SUMS
+  #     diff ./PHASHSUMS <testResultsDir>/PHASHSUMS
+  #     diff ./SHA256SUMS <testResultsDir>/SHA256SUMS
   #
   #     If the new outputs look OK, copy over the new sums:
   #     cp <testResultsDir>/PHASHSUMS ./PHASHSUMS
   #     cp <testResultsDir>/SHA256SUMS ./SHA256SUMS
-  #     rm ./PHASHSUMS-old ./SHA256SUMS-old
 
   XSLT_NORMALIZE = ./normalize.xslt;
   WP4321_98000_BASE64 = fetchurl {
@@ -96,13 +93,21 @@ stdenv.mkDerivation rec {
     sha256 = "0d4r54hkl4fcvl85s7c1q844rbjwlg99x66l7hhr00ppb5xr17v0";
   };
 
-  libPath0 = "../lib";
-  libPath1 = "$out/lib/pathvisio";
+  libPathSrc = "/build/source/lib";
+  libPathOut = "$out/lib/pathvisio";
 
-  modulesPath0 = "../modules";
-  modulesPath1 = "${libPath1}/modules";
+  modulesPathSrc = "/build/source/modules";
+  modulesPathOut = "${libPathOut}/modules";
 
-  sharePath1 = "$out/share/pathvisio";
+  sharePathOut = "$out/share/pathvisio";
+
+  tmpBuildDir = "/build";
+
+  binPathTmp = "/build/bin";
+  binPathOut="$out/bin";
+
+  logDir = "/build/logs";
+  testResultsDir="/build/testResults";
 
   biopax3GPMLSrc = fetchurl {
     url = "https://github.com/wikipathways/wikipathways.org/blob/e8fae01eae010e498d7408ca38e0beda1e8625d7/wpi/bin/Biopax3GPML.jar?raw=true";
@@ -110,66 +115,66 @@ stdenv.mkDerivation rec {
   };
 
   converterClasses = [
-    "${modulesPath0}/org.pathvisio.core.jar"
-    "${libPath0}/com.springsource.org.jdom-1.1.0.jar"
-    "${libPath0}/org.bridgedb.jar"
-    "${libPath0}/org.bridgedb.bio.jar"
-    "${libPath0}/org.apache.batik.bridge_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.css_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.dom_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.dom.svg_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.ext.awt_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.extension_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.parser_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.svggen_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.transcoder_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.util_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.util.gui_1.7.0.v200903091627.jar"
-    "${libPath0}/org.apache.batik.xml_1.7.0.v201011041433.jar"
-    "${libPath0}/org.pathvisio.pdftranscoder.jar"
-    "${libPath0}/org.w3c.css.sac_1.3.1.v200903091627.jar"
-    "${libPath0}/org.w3c.dom.events_3.0.0.draft20060413_v201105210656.jar"
-    "${libPath0}/org.w3c.dom.smil_1.0.1.v200903091627.jar"
-    "${libPath0}/org.w3c.dom.svg_1.1.0.v201011041433.jar"
+    "${modulesPathSrc}/org.pathvisio.core.jar"
+    "${libPathSrc}/com.springsource.org.jdom-1.1.0.jar"
+    "${libPathSrc}/org.bridgedb.jar"
+    "${libPathSrc}/org.bridgedb.bio.jar"
+    "${libPathSrc}/org.apache.batik.bridge_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.css_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.dom_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.dom.svg_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.ext.awt_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.extension_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.parser_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.svggen_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.transcoder_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.util_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.util.gui_1.7.0.v200903091627.jar"
+    "${libPathSrc}/org.apache.batik.xml_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.pathvisio.pdftranscoder.jar"
+    "${libPathSrc}/org.w3c.css.sac_1.3.1.v200903091627.jar"
+    "${libPathSrc}/org.w3c.dom.events_3.0.0.draft20060413_v201105210656.jar"
+    "${libPathSrc}/org.w3c.dom.smil_1.0.1.v200903091627.jar"
+    "${libPathSrc}/org.w3c.dom.svg_1.1.0.v201011041433.jar"
     biopax3GPMLSrc
   ];
   differClasses = [
-    "${modulesPath0}/org.pathvisio.core.jar"
-    "${libPath0}/com.springsource.org.jdom-1.1.0.jar"
-    "${libPath0}/org.bridgedb.jar"
-    "${libPath0}/org.bridgedb.bio.jar"
+    "${modulesPathSrc}/org.pathvisio.core.jar"
+    "${libPathSrc}/com.springsource.org.jdom-1.1.0.jar"
+    "${libPathSrc}/org.bridgedb.jar"
+    "${libPathSrc}/org.bridgedb.bio.jar"
   ];
   patcherClasses = [
-    "${modulesPath0}/org.pathvisio.core.jar"
-    "${libPath0}/com.springsource.org.jdom-1.1.0.jar"
-    "${libPath0}/org.bridgedb.jar"
-    "${libPath0}/org.bridgedb.bio.jar"
+    "${modulesPathSrc}/org.pathvisio.core.jar"
+    "${libPathSrc}/com.springsource.org.jdom-1.1.0.jar"
+    "${libPathSrc}/org.bridgedb.jar"
+    "${libPathSrc}/org.bridgedb.bio.jar"
   ];
 
   # TODO: gui launcher classes vs. jar?
   guiClasses = [
-    "${modulesPath0}/org.pathvisio.core.jar"
-    "${modulesPath0}/org.pathvisio.launcher.jar"
-    "${libPath0}/com.springsource.org.jdom-1.1.0.jar"
-    "${libPath0}/org.bridgedb.jar"
-    "${libPath0}/org.bridgedb.bio.jar"
-    "${libPath0}/org.apache.batik.bridge_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.css_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.dom_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.dom.svg_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.ext.awt_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.extension_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.parser_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.svggen_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.transcoder_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.util_1.7.0.v201011041433.jar"
-    "${libPath0}/org.apache.batik.util.gui_1.7.0.v200903091627.jar"
-    "${libPath0}/org.apache.batik.xml_1.7.0.v201011041433.jar"
-    "${libPath0}/org.pathvisio.pdftranscoder.jar"
-    "${libPath0}/org.w3c.css.sac_1.3.1.v200903091627.jar"
-    "${libPath0}/org.w3c.dom.events_3.0.0.draft20060413_v201105210656.jar"
-    "${libPath0}/org.w3c.dom.smil_1.0.1.v200903091627.jar"
-    "${libPath0}/org.w3c.dom.svg_1.1.0.v201011041433.jar"
+    "${modulesPathSrc}/org.pathvisio.core.jar"
+    "${modulesPathSrc}/org.pathvisio.launcher.jar"
+    "${libPathSrc}/com.springsource.org.jdom-1.1.0.jar"
+    "${libPathSrc}/org.bridgedb.jar"
+    "${libPathSrc}/org.bridgedb.bio.jar"
+    "${libPathSrc}/org.apache.batik.bridge_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.css_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.dom_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.dom.svg_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.ext.awt_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.extension_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.parser_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.svggen_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.transcoder_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.util_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.apache.batik.util.gui_1.7.0.v200903091627.jar"
+    "${libPathSrc}/org.apache.batik.xml_1.7.0.v201011041433.jar"
+    "${libPathSrc}/org.pathvisio.pdftranscoder.jar"
+    "${libPathSrc}/org.w3c.css.sac_1.3.1.v200903091627.jar"
+    "${libPathSrc}/org.w3c.dom.events_3.0.0.draft20060413_v201105210656.jar"
+    "${libPathSrc}/org.w3c.dom.smil_1.0.1.v200903091627.jar"
+    "${libPathSrc}/org.w3c.dom.svg_1.1.0.v201011041433.jar"
     biopax3GPMLSrc
   ];
 
@@ -182,13 +187,26 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "PathVisio";
     repo = "pathvisio";
+
+    # v3.3.0
     rev = "61f15de96b676ee581858f0485f9c6d8f61a3476";
     sha256 = "1n2897290g6kph1l04d2lj6n7137w0gnavzp9rjz43hi1ggyw6f9";
+
+    # v3.4.0
+    #rev = "d93a7aad72f66a1a2a3eaec3f91667853e5c8861";
+    #sha256 = "0xw7zxk69vlazjhc0p0jqzyqx9nh27prvdmki2k383zpg38ac5n7";
   };
 
   pngIconSrc = "${src}/www/bigcateye_135x135.png";
 
   iconSrc = "${src}/lib-build/bigcateye.icns";
+
+  # We're using Java 8, and these items should match that.
+  patchPhase = ''
+    substituteInPlace build-common.xml \
+      --replace 'name="ant.build.javac.target" value="1.6"' 'name="ant.build.javac.target" value="1.8"' \
+      --replace 'name="ant.build.javac.source" value="1.6"' 'name="ant.build.javac.source" value="1.8"'
+  '';
 
   buildPhase = (if headless then ''
     ant
@@ -197,24 +215,25 @@ stdenv.mkDerivation rec {
   '' else ''
     ant exe
   '') + ''
-    tmpBuildDir="$(pwd)"
-    binDir="$tmpBuildDir/bin"
-
-    mkdir -p "$binDir"
+    mkdir -p "${binPathTmp}"
+    mkdir -p "${logDir}"
 
     # NOTE: we need to cd into the bin directory here, because the CLASSPATHs
     #       are relative to the bin directory.
-    cd "$binDir"
+    cd "${binPathTmp}"
     converter_java_opts=$(sensible-jvm-opts "${converterCLASSPATH}" "${memory}")
     differ_java_opts=$(sensible-jvm-opts "${differCLASSPATH}" "${memory}")
     gui_java_opts=$(sensible-jvm-opts "${guiCLASSPATH}" "${memory}")
     patcher_java_opts=$(sensible-jvm-opts "${patcherCLASSPATH}" "${memory}")
 
-    cd "$tmpBuildDir"
+    cd "${tmpBuildDir}"
 
-    cat > ./bin/pathvisio <<EOF
+    #####################################################
+    # The following creates a file that serves as the CLI
+    #####################################################
+    cat > ${binPathTmp}/pathvisio <<EOF
 #! $shell
-TOP_OPTS=\$("${getoptAlias}" -o hvX: --long help,version:,icon: \
+TOP_OPTS=\$("getopt" -o hvX: --long help,version:,icon: \
              -n 'pathvisio' -- "\$@")
 
 if [ \$? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
@@ -252,7 +271,7 @@ fi
 JAVA_CUSTOM_OPTS=\$(IFS=" " ; echo "\$'' + ''{JAVA_CUSTOM_OPTS_ARR[*]}")
 
 if [ \$VERSION == true ]; then
-  ${javaAlias} -jar -Dfile.encoding=UTF-8 ${sharePath1}/pathvisio.jar -v
+  java -jar -Dfile.encoding=UTF-8 ${sharePathOut}/pathvisio.jar -v
   exit 0
 elif [ \$SUBCOMMAND == false ] && [ \$HELP == true ]; then
   echo 'usage: pathvisio [--version] [--help] [<command> <args>]'
@@ -289,7 +308,7 @@ elif [ \$SUBCOMMAND = 'convert' ]; then
   # java -Xmx{$maxMemoryM}M -jar $basePath/bin/pathvisio_core.jar \"$gpmlFile\" \"$outFile\" 2>&1"
 
   CLASSPATH="${converterCLASSPATH}"
-  ${javaAlias} $'' + ''{JAVA_CUSTOM_OPTS:-$converter_java_opts} -ea -classpath \$CLASSPATH org.pathvisio.core.util.Converter "\$@"
+  java $'' + ''{JAVA_CUSTOM_OPTS:-$converter_java_opts} -ea -classpath \$CLASSPATH org.pathvisio.core.util.Converter "\$@"
   exit 0
 elif [ \$SUBCOMMAND = 'diff' ]; then
   if [ \$HELP == true ]; then
@@ -303,7 +322,7 @@ elif [ \$SUBCOMMAND = 'diff' ]; then
   fi
 
   CLASSPATH="${differCLASSPATH}"
-  ${javaAlias} $'' + ''{JAVA_CUSTOM_OPTS:-$differ_java_opts} -ea -classpath \$CLASSPATH org.pathvisio.core.gpmldiff.GpmlDiff "\$@"
+  java $'' + ''{JAVA_CUSTOM_OPTS:-$differ_java_opts} -ea -classpath \$CLASSPATH org.pathvisio.core.gpmldiff.GpmlDiff "\$@"
   exit 0
 elif [ \$SUBCOMMAND = 'patch' ]; then
   if [ \$HELP == true ]; then
@@ -316,14 +335,14 @@ elif [ \$SUBCOMMAND = 'patch' ]; then
   fi
 
   CLASSPATH="${patcherCLASSPATH}"
-  ${javaAlias} $'' + ''{JAVA_CUSTOM_OPTS:-$patcher_java_opts} -ea -classpath \$CLASSPATH org.pathvisio.core.gpmldiff.PatchMain "\$@"
+  java $'' + ''{JAVA_CUSTOM_OPTS:-$patcher_java_opts} -ea -classpath \$CLASSPATH org.pathvisio.core.gpmldiff.PatchMain "\$@"
   exit 0
 elif [ \$SUBCOMMAND = 'launch' ]; then
   # TODO: close this issue:
   # https://github.com/PathVisio/pathvisio/issues/97
   if [ \$HELP == true ];
   then
-    ${javaAlias} -jar -Dfile.encoding=UTF-8 ${sharePath1}/pathvisio.jar -h | sed 's/pathvisio/pathvisio launch/'
+    java -jar -Dfile.encoding=UTF-8 ${sharePathOut}/pathvisio.jar -h | sed 's/pathvisio/pathvisio launch/'
     exit 0
   fi
 
@@ -331,8 +350,8 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
   PREFS_FILE="\$HOME/.PathVisio/.PathVisio"
   if [ ! -e "\$PREFS_FILE" ];
   then
-    echo "#" > "\$PREFS_FILE";
-    echo "#Wed Jun 27 16:21:04 PDT 2018" >> "\$PREFS_FILE";
+    echo "#" >"\$PREFS_FILE";
+    echo "#Wed Jun 27 16:21:04 PDT 2018" >>"\$PREFS_FILE";
   fi
 
   # Ensure we're connected to BridgeDb REST webservice
@@ -341,13 +360,13 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
     ln -s "${bridgedbSettings}" "\$HOME/.PathVisio/.bundles/pvplugins-bridgedbSettings-1.0.0.jar"
 
     cat ${pathvisioPluginsXML} | \
-      ${xmlstarletAlias} ed \
+      xmlstarlet ed \
         -u '/ns2:pvRepository/url' \
         -v "\$HOME/.PathVisio/.bundles" | \
-      ${xmlstarletAlias} ed \
+      xmlstarlet ed \
         -u '/ns2:pvRepository/bundle_version_list/pv_bundle_version/jar_file_url' \
         -v "\$HOME/.PathVisio/.bundles/pvplugins-bridgedbSettings-1.0.0.jar" \
-      > "\$HOME/.PathVisio/.bundles/pathvisio.xml"
+      >"\$HOME/.PathVisio/.bundles/pathvisio.xml"
   fi
 
   '' + concatStringsSep "" (map (d: d.linkCmd) datasources) + ''
@@ -357,7 +376,7 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
   if [ ! "\$target_file_raw" ];
   then
     # We don't want to overwrite an existing file.
-    suffix=\$(${dateAlias} +%s)
+    suffix=\$(date +%s)
     target_dir="."
     if [ ! -w "\$target_dir/" ]; then
       target_dir="\$HOME"
@@ -373,16 +392,16 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
   # we create a starter file and open that.
   if [ ! -e "\$target_file" ];
   then
-          echo "Opening new file: \$target_file"
-          ${xmlstarletAlias} ed -N gpml='http://pathvisio.org/GPML/2013a' -u '/gpml:Pathway/@Organism' -v '${organism}' "${pathwayStub}" > "\$target_file"
+          echo "Opening new file: \$target_file" 1>&2
+          xmlstarlet ed -N gpml='http://pathvisio.org/GPML/2013a' -u '/gpml:Pathway/@Organism' -v '${organism}' "${pathwayStub}" >"\$target_file"
           # TODO: verify the code above, replacing sed w/ xmlstarlet, works correctly.
-#          cat "${pathwayStub}" > "\$target_file"
+#          cat "${pathwayStub}" >"\$target_file"
 #          chmod u+rw "\$target_file"
 #          sed -i.bak "s#Homo sapiens#${organism}#" "\$target_file"
 #          rm "\$target_file.bak"
           patchedFlags="\$@ \$target_file"
   else
-          echo "Opening specified file: \$target_file"
+          echo "Opening specified file: \$target_file" 1>&2
           patchedFlags=\$(echo "\$@" | sed "s#\$target_file_raw#\$target_file#")
   fi
 
@@ -392,7 +411,7 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
   current_organism="${organism}"
   if ! grep -Fq "${organism}" \$target_file;
   then
-    current_organism=\$(${xmlstarletAlias} sel -N gpml='http://pathvisio.org/GPML/2013a' -t -v '/gpml:Pathway/@Organism'  "\$target_file")
+    current_organism=\$(xmlstarlet sel -N gpml='http://pathvisio.org/GPML/2013a' -t -v '/gpml:Pathway/@Organism'  "\$target_file")
     # TODO: verify the code above, replacing sed w/ xmlstarlet,  works correctly
     #current_organism=\$(grep -o 'Organism="\\(.*\\)"' \$target_file | sed 's#.*"\\(.*\\)".*#\\1#')
   fi
@@ -401,10 +420,10 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
   # even if we have the webservice running for the other.
   if ! grep -q "^BRIDGEDB_CONNECTION.*\$current_organism" "\$PREFS_FILE";
   then
-    echo "Setting BRIDGEDB_CONNECTION_1 for \$current_organism"
+    echo "Setting BRIDGEDB_CONNECTION_1 for \$current_organism" 1>&2
     sed -i.bak "/^BRIDGEDB_CONNECTION_.*$/d" "\$PREFS_FILE"
     rm "\$PREFS_FILE.bak"
-    echo "BRIDGEDB_CONNECTION_1=idmapper-bridgerest\\:http\\://webservice.bridgedb.org\\:80/\$current_organism" >> "\$PREFS_FILE"
+    echo "BRIDGEDB_CONNECTION_1=idmapper-bridgerest\\:http\\://webservice.bridgedb.org\\:80/\$current_organism" >>"\$PREFS_FILE"
   fi
   # TODO: take a look at this:
   # https://github.com/tofi86/universalJavaApplicationStub
@@ -422,20 +441,20 @@ elif [ \$SUBCOMMAND = 'launch' ]; then
   #       Probably only used on macOS?
 
   # NOTE: using nohup ... & to keep GUI running, even if the terminal is closed
-  nohup ${javaAlias} $'' + ''{JAVA_CUSTOM_OPTS:-$gui_java_opts} \
+  nohup java $'' + ''{JAVA_CUSTOM_OPTS:-$gui_java_opts} \
 '' + (
 if stdenv.system == "x86_64-darwin" then ''
     -Xdock:icon="${iconSrc}" \
     -Xdock:name="${name}" \
 '' else ''
 '' ) + ''
-    -jar "${sharePath1}/pathvisio.jar" \$patchedFlags >> "\$HOME/.PathVisio/PathVisio.log" 2>> "\$HOME/.PathVisio/PathVisio.log" &
+    -jar "${sharePathOut}/pathvisio.jar" \$patchedFlags >>"\$HOME/.PathVisio/PathVisio.log" 2>>"\$HOME/.PathVisio/PathVisio.log" &
 else
   echo "Invalid subcommand \$1" >&2
   exit 1
 fi
 EOF
-    chmod a+x ./bin/pathvisio
+    chmod a+x "${binPathTmp}/pathvisio"
   '';
 
   doCheck = true;
@@ -444,59 +463,66 @@ EOF
     # TODO: Should we be running existing tests like the following here?
     # https://github.com/PathVisio/pathvisio/tree/master/modules/org.pathvisio.core/test/org/pathvisio/core
 
-    tmpBuildDir="$(pwd)"
-    binDir="$tmpBuildDir/bin"
-    testResultsDir="$tmpBuildDir/test-results"
+    mkdir -p "${testResultsDir}"
 
-    mkdir "$testResultsDir"
-
-    cd "$binDir"
+    cd "${binPathTmp}"
 
 function gpml2many()
 {
   local f=$1
 
-  converted_f="../test-results/"$(basename "$f" ".gpml")
+  cp "$f" "${testResultsDir}/"
+
+  converted_f="${testResultsDir}/"$(basename "$f" ".gpml")
 
   # convert/update from old GPML schema to latest:
-  ./pathvisio convert "$f" "$converted_f".gpml >> message.log 2>> error.log
-  xmlstarlet tr ${XSLT_NORMALIZE} "$converted_f".gpml > "$converted_f".norm.gpml
+  ./pathvisio convert "$f" "$converted_f".gpml >>"${logDir}/message.log" 2>>"${logDir}/error.log"
+  xmlstarlet tr ${XSLT_NORMALIZE} "$converted_f".gpml >"$converted_f".norm.gpml
 
-  ./pathvisio convert "$converted_f".gpml "$converted_f".owl >> message.log 2>> error.log
-  xmlstarlet tr ${XSLT_NORMALIZE} "$converted_f".owl > "$converted_f".norm.owl
+  ./pathvisio convert "$converted_f".gpml "$converted_f".owl >>"${logDir}/message.log" 2>>"${logDir}/error.log"
+  xmlstarlet tr ${XSLT_NORMALIZE} "$converted_f".owl >"$converted_f".norm.owl
   cp "$converted_f".bpss "$converted_f".norm.bpss
 
   # TODO why does the sha256sum for converted PNGs differ between Linux and Darwin?
-  ./pathvisio convert "$converted_f".gpml "$converted_f".png >> message.log 2>> error.log
-  ./pathvisio convert "$converted_f".gpml "$converted_f"-200.png 200 >> message.log 2>> error.log
-
-  ./pathvisio convert "$converted_f".gpml "$converted_f".pdf >> message.log 2>> error.log
+  ./pathvisio convert "$converted_f".gpml "$converted_f".png >>"${logDir}/message.log" 2>>"${logDir}/error.log"
+  ./pathvisio convert "$converted_f".gpml "$converted_f"-200.png 200 >>"${logDir}/message.log" 2>>"${logDir}/error.log"
+  ./pathvisio convert "$converted_f".gpml "$converted_f".pdf >>"${logDir}/message.log" 2>>"${logDir}/error.log"
 }
 export -f gpml2many
 
-    echo 'convert...'
-    processor_count=$(nproc)
-    ls -1 ../{example-data/,testData/,testData/2010a/{biopax,parsetest}}*.gpml | \
-      parallel --eta -k -P $processor_count gpml2many {}
+    echo "  performing all conversions: gpml->owl+bpss,png,png200,pdf (takes awhile)..." 1>&2
 
-    cd "$testResultsDir"
+    processor_count=$(nproc)
+    ls -1 "/build/source/"{example-data/,testData/,testData/2010a/{biopax,parsetest}}*.gpml | \
+      parallel --eta -k -P $processor_count gpml2many {} >>"${logDir}/message.log" 2>>"${logDir}/error.log"
+
+#    # Leaving this here in case I want to use it again later for debugging.
+#    # It does the same as the parallel code above, just not in parallel.
+#    for f in "/build/source/"{example-data/,testData/,testData/2010a/{biopax,parsetest}}*.gpml; do
+#      echo "f: $f"
+#      ls -lah "$f"
+#      echo "    $(basename $f)" 1>&2
+#      gpml2many "$f"
+#    done
+
+    cd "${testResultsDir}"
 
     PASSING=true
 
     if [ -n "$(cat ${SHA256SUMS})" ]; then
-      echo 'Verifying shasums...'
-      cp ${SHA256SUMS} "$testResultsDir/SHA256SUMS"
+      echo '  verifying shasums...' 1>&2
+      cp ${SHA256SUMS} "${testResultsDir}/SHA256SUMS"
       sha256sum -c --quiet "./SHA256SUMS"
     else
       PASSING=false
       echo ' '
-      echo 'SHA256SUMS not set.'
-      echo "Verify the converted outputs in $testResultsDir"
-      echo "If they look OK, get the updated SHA256SUMS:"
-      echo "cp $testResultsDir/SHA256SUMS ./SHA256SUMS"
-      echo ' '
-      touch "$testResultsDir/SHA256SUMS"
-      sha256sum --tag ./*.norm.{bpss,gpml,owl} >> "$testResultsDir/SHA256SUMS"
+      echo 'SHA256SUMS not set.' 1>&2
+      echo "Verify the converted outputs in ${testResultsDir}" 1>&2
+      echo "If they look OK, get the updated SHA256SUMS:" 1>&2
+      echo "cp ${testResultsDir}/SHA256SUMS ./SHA256SUMS" 1>&2
+      echo ' ' 1>&2
+      touch "${testResultsDir}/SHA256SUMS"
+      sha256sum --tag ./*.norm.{bpss,gpml,owl} >>"${testResultsDir}/SHA256SUMS"
       echo ' '
     fi
 
@@ -511,10 +537,12 @@ export -f gpml2many
     # pathvisio convert FILE.gpml FILE.png
 
     if [ -n "$(cat ${PHASHSUMS})" ]; then
-      echo 'Verifying perceptual hash (phash) sums...'
-      cp ${PHASHSUMS} "$testResultsDir/PHASHSUMS"
+      echo '  verifying perceptual hash (phash) sums...' 1>&2
+      cp ${PHASHSUMS} "${testResultsDir}/PHASHSUMS"
       while IFS=" ()=" read -r alg converted blank expected;
       do
+        # Uncomment the following to see which files are being checked
+        #echo "    $(basename $converted)" 1>&2
         if [ -f "$converted" ]; then
           actual=$(identify -quiet -verbose -moments -alpha off "$converted" | grep "PH[1-7]" | sed -n 's/.*: \(.*\)$/\1/p' | sed 's/ *//g' | tr "\n" ",")
 
@@ -530,8 +558,8 @@ export -f gpml2many
 
           limit=10
           if [ "$sse" -gt "$limit" ]; then
-            echo "Error: pathvisio convert test failed."
-            echo "       $converted is too dissimilar from reference: $sse (should be <= $limit)"
+            echo "Error: pathvisio convert test failed." 1>&2
+            echo "       $converted is too dissimilar from reference: $sse (should be <= $limit)" 1>&2
             exit 1;
           fi
         fi
@@ -541,21 +569,28 @@ export -f gpml2many
         base=$(basename "$f" ".pdf")
         png="$base.png"
 
+        # Uncomment the following to see which files are being checked
+        #echo "base: $base" 1>&2
+
         if grep -Fq "$png" ./PHASHSUMS; then
           phash=$(grep -F "$png" ./PHASHSUMS)
           IFS=" ()=" read -r alg converted blank expected <<< "$phash";
 
           # NOTE: when going from gpml to pdf, pathvisio converts text into paths.
           # But the PDF still seems to retain a record that it used to have certain
-          # fonts, and these fonts are probably not installed by Nix, in which case
-          # pdftopng will display an error such as:
-          #   "Config Error: No display font for 'Courier'"
-          # But since there are no actual fonts in the PDF, it doesn't matter and we
-          # can safely ignore it.
-          # However, for some reason, the -q option doesn't stop the font warning messages,
-          # so we need to pipe the warning to /dev/null
-          pdftopng -q "$f" "$base" 2> /dev/null
-          png="$base""-000001.png"
+          # fonts, but since there are no actual fonts in the PDF, it doesn't
+          # matter and we can safely ignore them. pdftocairo doesn't seem to care
+          # about them, but the converter from xpdf (pdftopng) did complain.
+
+          # These PDFs don't have images embedded in them such that we can just extract the image.
+          # Proof: the following didn't extract anything:
+          #   pdfimages -all "$f" ./whatever-directory-you-choose/
+
+          # So we need to actually convert the PDF to PNG for comparison purposes:
+          pdftocairo -png "$f" "$base"
+          # pdftocairo automatically adds "-1.png" target name
+          png="$base""-1.png"
+
           actual=$(identify -quiet -verbose -moments -alpha off "$png" | grep "PH[1-7]" | sed -n 's/.*: \(.*\)$/\1/p' | sed 's/ *//g' | tr "\n" ",")
 
           sse=0
@@ -570,8 +605,8 @@ export -f gpml2many
 
           limit=10
           if [ "$sse" -gt $limit ]; then
-            echo "Error: pathvisio convert test failed."
-            echo "       Bad match for $f: $sse (should be <= $limit)"
+            echo "Error: pathvisio convert test failed." 1>&2
+            echo "       Bad match for $f: $sse (should be <= $limit)" 1>&2
             exit 1;
           fi
 
@@ -581,20 +616,20 @@ export -f gpml2many
     else
       PASSING=false
       echo ' '
-      echo 'PHASHSUMS not set.'
-      echo "Verify the converted outputs in $testResultsDir"
-      echo "If they look OK, get the updated PHASHSUMS:"
-      echo "cp $testResultsDir/PHASHSUMS ./PHASHSUMS"
-      echo ' '
-      touch "$testResultsDir/PHASHSUMS"
+      echo 'PHASHSUMS not set.' 1>&2
+      echo "Verify the converted outputs in ${testResultsDir}" 1>&2
+      echo "If they look OK, get the updated PHASHSUMS:" 1>&2
+      echo "cp ${testResultsDir}/PHASHSUMS ./PHASHSUMS" 1>&2
+      echo ' ' 1>&2
+      touch "${testResultsDir}/PHASHSUMS"
       # NOTE: PNGs larger than limit are too big to calculate the phash
       limit=200000
       for f in ./*.png; do
         size=$(stat --printf="%s" "$f")
         if [ $size -lt $limit ]; then
           phash=$(identify -quiet -verbose -moments -alpha off "$f" | grep "PH[1-7]" | sed -n 's/.*: \(.*\)$/\1/p' | sed 's/ *//g' | tr "\n" ",")
-          #echo "PHASH ($f) = $phash" | tee -a "$testResultsDir/PHASHSUMS"
-          echo "PHASH ($f) = $phash" >> "$testResultsDir/PHASHSUMS"
+          #echo "PHASH ($f) = $phash" | tee -a "${testResultsDir}/PHASHSUMS"
+          echo "PHASH ($f) = $phash" >>"${testResultsDir}/PHASHSUMS"
         fi
       done
       echo ' '
@@ -603,47 +638,47 @@ export -f gpml2many
     cat ${WP4321_98000_BASE64} | xmlstarlet sel -t -v '//ns1:data' | base64 -d - > WP4321_98000.gpml
     cat ${WP4321_98055_BASE64} | xmlstarlet sel -t -v '//ns1:data' | base64 -d - > WP4321_98055.gpml
 
-    cd "$binDir"
+    cd "${binPathTmp}"
 
-    echo "diff..."
-    ./pathvisio diff ../test-results/WP4321_98000.gpml ../test-results/WP4321_98055.gpml > ../test-results/WP4321_98000_98055.patch 2>> error.log
+    echo "  pathvisio diff" 1>&2
+    ./pathvisio diff "${testResultsDir}"/WP4321_98000.gpml "${testResultsDir}"/WP4321_98055.gpml > "${testResultsDir}"/WP4321_98000_98055.patch 2>>"${logDir}/error.log"
 
-    echo "patch..."
-    cp ../test-results/WP4321_98000.gpml ../test-results/WP4321_98055.roundtrip.gpml
-    ./pathvisio patch ../test-results/WP4321_98055.roundtrip.gpml < ../test-results/WP4321_98000_98055.patch >> message.log 2>> error.log
+    echo "  pathvisio patch" 1>&2
+    cp "${testResultsDir}"/WP4321_98000.gpml "${testResultsDir}"/WP4321_98055.roundtrip.gpml
+    ./pathvisio patch "${testResultsDir}"/WP4321_98055.roundtrip.gpml < "${testResultsDir}"/WP4321_98000_98055.patch >>"${logDir}/message.log" 2>>"${logDir}/error.log"
 
-#    xmlstarlet tr ${XSLT_NORMALIZE} ../test-results/WP4321_98055.gpml > ../test-results/WP4321_98055.norm.gpml
-#    xmlstarlet tr ${XSLT_NORMALIZE} ../test-results/WP4321_98055.roundtrip.gpml > ../test-results/WP4321_98055.roundtrip.norm.gpml
-#    common=$(comm -3 --nocheck-order ../test-results/WP4321_98055.norm.gpml ../test-results/WP4321_98055.roundtrip.norm.gpml)
+#    xmlstarlet tr ${XSLT_NORMALIZE} "${testResultsDir}"/WP4321_98055.gpml > "${testResultsDir}"/WP4321_98055.norm.gpml
+#    xmlstarlet tr ${XSLT_NORMALIZE} "${testResultsDir}"/WP4321_98055.roundtrip.gpml > "${testResultsDir}"/WP4321_98055.roundtrip.norm.gpml
+#    common=$(comm -3 --nocheck-order "${testResultsDir}"/WP4321_98055.norm.gpml "${testResultsDir}"/WP4321_98055.roundtrip.norm.gpml)
     # TODO pathvisio patch doesn't fully patch the diff between WP4321_98000 and
     # WP4321_98055, so we're forced to use the kludge of comparing just the
     # element structure instead of the actual output.
-    xmlstarlet tr ${XSLT_NORMALIZE} ../test-results/WP4321_98055.gpml | xmlstarlet el > ../test-results/WP4321_98055.el.txt
-    xmlstarlet tr ${XSLT_NORMALIZE} ../test-results/WP4321_98055.roundtrip.gpml | xmlstarlet el > ../test-results/WP4321_98055.roundtrip.el.txt
-    common=$(comm -3 --nocheck-order ../test-results/WP4321_98055.el.txt ../test-results/WP4321_98055.roundtrip.el.txt)
+    xmlstarlet tr ${XSLT_NORMALIZE} "${testResultsDir}"/WP4321_98055.gpml | xmlstarlet el > "${testResultsDir}"/WP4321_98055.el.txt
+    xmlstarlet tr ${XSLT_NORMALIZE} "${testResultsDir}"/WP4321_98055.roundtrip.gpml | xmlstarlet el > "${testResultsDir}"/WP4321_98055.roundtrip.el.txt
+    common=$(comm -3 --nocheck-order "${testResultsDir}"/WP4321_98055.el.txt "${testResultsDir}"/WP4321_98055.roundtrip.el.txt)
     if [[ "$common" != "" ]]; then
-      echo "Error: pathvisio patch test failed. Mis-matched content:"
-      echo "-----------------"
-      echo "$common"
-      echo "-----------------"
+      echo "Error: pathvisio patch test failed. Mis-matched content:" 1>&2
+      echo "-----------------" 1>&2
+      echo "$common" 1>&2
+      echo "-----------------" 1>&2
       exit 1;
     fi
 
-    echo "PASSING: $PASSING"
+    echo "PASSING: $PASSING" 1>&2
     if [ ! $PASSING ]; then
-      echo "Quitting because test(s) failed."
+      echo "Quitting because test(s) failed." 1>&2
       exit 1;
     fi
 
-    cd "$tmpBuildDir"
+    cd "${tmpBuildDir}"
   '';
 
   desktopItem = makeDesktopItem {
     name = name;
-    exec = "${sharePath1}/pathvisio-launch";
+    exec = "${sharePathOut}/pathvisio-launch";
     #exec = "pathvisio launch";
-    #exec = "pathvisio launch ~/pathway-\$(${dateAlias} -j -f \"%a %b %d %T %Z %Y\" \"\$(${dateAlias})\" \"+%s\").gpml";
-    #exec = "pathvisio launch ~/pathway-\$(${dateAlias} \"+%s\").gpml";
+    #exec = "pathvisio launch ~/pathway-\$(date -j -f \"%a %b %d %T %Z %Y\" \"\$(date)\" \"+%s\").gpml";
+    #exec = "pathvisio launch ~/pathway-\$(date \"+%s\").gpml";
     #exec = "pathvisio launch ~/pathway-test.gpml";
     icon = "${pngIconSrc}";
     desktopName = baseName;
@@ -659,36 +694,34 @@ export -f gpml2many
   # TODO Should we somehow take advantage of the osgi and apache capabilities?
   #      Is the ant build process already doing this?
   installPhase = ''
-    tmpBuildDir="$(pwd)"
-    binDir="$tmpBuildDir/bin"
-    outBinDir="$out/bin"
+    mkdir -p "${binPathOut}" "${libPathOut}" "${modulesPathOut}"
 
-    mkdir -p "$outBinDir" "${libPath1}" "${modulesPath1}"
+    cp -r  "${libPathSrc}"/* "${libPathOut}/"
+    cp -r "${modulesPathSrc}"/* "${modulesPathOut}/"
+    cp -r "${binPathTmp}"/* "${binPathOut}/"
 
-    cp -r ./lib/* "${libPath1}/"
-    cp -r ./modules/* "${modulesPath1}/"
-
-    cp -r ./bin/* "$outBinDir/"
-    for f in $out/bin/*; do
+    # To test after building, we point to source paths, but for installation,
+    # we want to point to out paths.
+    for f in "${binPathOut}"/*; do
       substituteInPlace $f \
-            --replace "${libPath0}" "${libPath1}" \
-            --replace "${modulesPath0}" "${modulesPath1}"
+            --replace "${libPathSrc}" "${libPathOut}" \
+            --replace "${modulesPathSrc}" "${modulesPathOut}"
     done
 
-    if [ -e "./message.log" ]; then
-      echo 'message log:'
-      cat ./message.log
+    if [ -e "${logDir}/message.log" ]; then
+      echo 'message log:' 1>&2
+      cat "${logDir}/message.log" 1>&2
     fi
-    if [ -e "./error.log" ]; then
-      echo 'error log:'
-      cat ./error.log
+    if [ -e "${logDir}/error.log" ]; then
+      echo 'error log:' 1>&2
+      cat "${logDir}/error.log" 1>&2
     fi
   '' + (
   if headless then ''
-    echo 'Desktop functionality not enabled.'
+    echo 'Desktop functionality not enabled.' 1>&2
   '' else ''
-    mkdir -p "${sharePath1}"
-    cp ./pathvisio.jar "${sharePath1}/pathvisio.jar"
+    mkdir -p "${sharePathOut}"
+    cp "/build/source/pathvisio.jar" "${sharePathOut}/pathvisio.jar"
   '' + (
     if stdenv.system == "x86_64-darwin" then ''
       mkdir -p "$out/Applications"
@@ -697,20 +730,20 @@ export -f gpml2many
       # TODO: look at previous JavaApplicationStub to see whether to include anything from it
       cat > $out/Applications/PathVisio.app/Contents/MacOS/JavaApplicationStub <<EOF
 #! $shell
-$out/bin/pathvisio launch
+${binPathOut}/pathvisio launch
 EOF
     '' else ''
       mkdir -p "$out/share/applications"
-      cat > "${sharePath1}/pathvisio-launch" <<EOF
+      cat >"${sharePathOut}/pathvisio-launch" <<EOF
 #! $shell
-$out/bin/pathvisio launch
+${binPathOut}/pathvisio launch
 EOF
-      chmod a+x "${sharePath1}/pathvisio-launch"
+      chmod a+x "${sharePathOut}/pathvisio-launch"
       ln -s ${desktopItem}/share/applications/* "$out/share/applications/"
     ''
   ));
 
-  meta = with stdenv.lib;
+  meta = with lib;
     { description = "A tool to create, edit and analyze biological pathways";
       longDescription = ''
         There are several options you can specify:

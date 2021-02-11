@@ -1,14 +1,14 @@
-{ coreutils,
-fetchurl,
-stdenv }:
+{ lib
+, stdenv
+, coreutils
+, fetchurl
+, java-buildpack-memory-calculator }:
 
 with builtins;
 
 let
   baseName = "sensible-jvm-opts";
   version = "1.0.0";
-  custom = import ../all-custom.nix;
-  java-buildpack-memory-calculator = custom.java-buildpack-memory-calculator;
 in
 stdenv.mkDerivation rec {
   name = replaceStrings [" "] ["_"] (concatStringsSep "-" (filter (x: isString x) [baseName version]));
@@ -100,7 +100,7 @@ EOF
     cp -r ./bin/* $out/bin/
   '';
 
-  meta = with stdenv.lib;
+  meta = with lib;
     { description = "CLI tool to calculate sensible JVM options.";
       longDescription = ''
         For more details, see these refernces:
