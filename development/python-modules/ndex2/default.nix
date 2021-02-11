@@ -33,6 +33,7 @@ buildPythonPackage rec {
         --replace "'enum34'," "'enum34; python_version < \"3.4\"',"
   '';
 
+  # TODO: can we de-dupe any deps between checkInputs and propagatedBuildInputs?
   checkInputs = [
     nose six ijson requests requests-toolbelt networkx urllib3 pandas pysolr numpy
   ];

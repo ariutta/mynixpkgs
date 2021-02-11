@@ -55,6 +55,7 @@ in
           aquirdturtle_collapsible_headings
           confusable-homoglyphs
           homoglyphs
+          ipython-sql
           json5
           jupyter_lsp
           jupyter_packaging
@@ -67,6 +68,7 @@ in
           jupyterlab_hide_code
           jupyterlab-lsp
           jupyterlab_server
+          jupyterlab-sql
           jupyterlab-system-monitor
           jupyterlab-topbar
           jupyterlab_vim
@@ -78,6 +80,7 @@ in
           seaborn
           skosmos_client
           simpervisor
+          trotter
           wikidata2df
 
           # also try one python pkg from nixpkgs

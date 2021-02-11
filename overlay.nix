@@ -58,6 +58,8 @@ let
       inherit jupyterlab;
     };
     nb_black = selfPythonPackages.callPackage ./development/python-modules/nb_black/default.nix {};
+    ipython-sql = selfPythonPackages.callPackage ./development/python-modules/ipython-sql/default.nix {};
+    jupyterlab-sql = selfPythonPackages.callPackage ./development/python-modules/jupyterlab-sql/default.nix {};
     ndex2 = selfPythonPackages.callPackage ./development/python-modules/ndex2/default.nix {};
     seaborn = selfPythonPackages.callPackage ./development/python-modules/seaborn/default.nix {};
     skosmos_client = selfPythonPackages.callPackage ./development/python-modules/skosmos_client/default.nix {};
@@ -65,6 +67,7 @@ let
     homoglyphs = selfPythonPackages.callPackage ./development/python-modules/homoglyphs/default.nix {};
     confusable-homoglyphs = selfPythonPackages.callPackage ./development/python-modules/confusable-homoglyphs/default.nix {};
     pyahocorasick = selfPythonPackages.callPackage ./development/python-modules/pyahocorasick/default.nix {};
+    trotter = selfPythonPackages.callPackage ./development/python-modules/trotter/default.nix {};
   };
 
 in
