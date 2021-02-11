@@ -24,7 +24,7 @@ rm result
 
 ```
 nix repl '<nixpkgs>'
-pkgs = import <nixpkgs> { overlays=[(import ./python-overlay.nix)]; }
+pkgs = import <nixpkgs> { overlays=[(import ./overlay.nix)]; }
 :b pkgs.python3Packages.callPackage ./nixpkgs/jupyter_server/default.nix {}
 ```
 
@@ -32,7 +32,7 @@ or alternatively:
 
 ```
 nix repl '<nixpkgs>'
-overlays = [(import ./python-overlay.nix)]
+overlays = [(import ./overlay.nix)]
 pkgs = import <nixpkgs> { inherit overlays; }
 :b pkgs.python3Packages.callPackage ./nixpkgs/jupyter_server/default.nix {}
 ```
