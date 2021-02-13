@@ -37,7 +37,7 @@ let
       inherit jupyterlab jupyter_lsp;
     };
     jupyterlab_code_formatter = selfPythonPackages.callPackage ./development/python-modules/jupyterlab_code_formatter/default.nix {
-      inherit jupyterlab;
+      rpy2=selfPythonPackages.rpy2;
     };
     jupyterlab_hide_code = selfPythonPackages.callPackage ./development/python-modules/jupyterlab_hide_code/default.nix {
       inherit jupyterlab;
