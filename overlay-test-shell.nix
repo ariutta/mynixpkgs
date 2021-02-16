@@ -68,7 +68,6 @@ in
           jupyterlab_hide_code
           jupyterlab-lsp
           jupyterlab_server
-          jupyterlab-sql
           jupyterlab-system-monitor
           jupyterlab-topbar
           jupyterlab_vim

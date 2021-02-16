@@ -1,7 +1,7 @@
 _: pkgs:
 let
   sqlint = pkgs.callPackage ./sqlint/default.nix {};
-  #nodePackages = import ./development/node-packages/node-packages.nix;
+  nodePackages = import ./development/node-packages/node-packages.nix;
   perlPackages = pkgs.callPackage ./perl-packages.nix {}; 
   pgFormatter = perlPackages.pgFormatter;
   java-buildpack-memory-calculator = pkgs.callPackage ./java-buildpack-memory-calculator/default.nix {};
@@ -59,7 +59,6 @@ let
     };
     nb_black = selfPythonPackages.callPackage ./development/python-modules/nb_black/default.nix {};
     ipython-sql = selfPythonPackages.callPackage ./development/python-modules/ipython-sql/default.nix {};
-    jupyterlab-sql = selfPythonPackages.callPackage ./development/python-modules/jupyterlab-sql/default.nix {};
     ndex2 = selfPythonPackages.callPackage ./development/python-modules/ndex2/default.nix {};
     seaborn = selfPythonPackages.callPackage ./development/python-modules/seaborn/default.nix {};
     skosmos_client = selfPythonPackages.callPackage ./development/python-modules/skosmos_client/default.nix {};
