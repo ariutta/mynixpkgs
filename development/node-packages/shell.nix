@@ -3,6 +3,9 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.nodePackages.node2nix
 
+    # yarn.lock <-> package-lock.json
+    #pkgs.nodePackages.synp
+
     # node-gyp dependencies (node-gyp compiles C/C++ Addons)
     #   see https://github.com/nodejs/node-gyp#on-unix
     pkgs.python2

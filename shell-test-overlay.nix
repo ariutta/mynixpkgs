@@ -10,10 +10,9 @@ let
     # my custom overlays
     (import ./overlay.nix)
   ];
-  #overlays = [];
   pkgs = import <nixpkgs> { inherit overlays; config.allowUnfree = true; };
   buildPythonPackage = pkgs.python3.pkgs.buildPythonPackage;
-  mynixpkgs = import ./default.nix { inherit pkgs buildPythonPackage; };
+  #mynixpkgs = import ./default.nix { inherit pkgs buildPythonPackage; };
 in
   pkgs.stdenv.mkDerivation rec {
     name = "env";
@@ -25,6 +24,8 @@ in
 
     # Customizable development requirements
     buildInputs = with pkgs; [
+      base16-gruvbox-dark-labextension
+
       bash-it
 
       # TODO: this gives a warning:
@@ -42,8 +43,13 @@ in
       sqlint
       tosheets
 
+      myPerlPackages.pgFormatter
+
+      myNodePackages.bridgedb
+      myNodePackages.gpml2pvjson
+      myNodePackages.pvjs
+
       # TODO: these pkgs cause errors
-      #perlPackages.pgFormatter
       #privoxy
       #vim
 

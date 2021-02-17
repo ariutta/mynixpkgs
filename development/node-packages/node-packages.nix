@@ -1,8 +1,5 @@
 with import <nixpkgs> { config.allowUnfree = true; };
 let
-  nodePackages_8_x = callPackage ./default-v8.nix {
-    nodejs = pkgs.nodejs-8_x;
-  };
   nodePackages_10_x = callPackage ./default-v10.nix {
     nodejs = pkgs.nodejs-10_x;
   };
@@ -13,7 +10,6 @@ let
 in
 {
   nodePackages = nodePackages;
-  nodePackages_8_x = nodePackages_8_x;
   nodePackages_10_x = nodePackages_10_x;
   nodePackages_12_x = nodePackages_12_x;
 

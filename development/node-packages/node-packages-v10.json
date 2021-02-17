@@ -1,1 +1,9 @@
-["depcheck", "typescript", "bridgedb", "gpml2pvjson", "@wikipathways/pvjs", "svgo"]
+[
+  "depcheck",
+  "typescript",
+  "bridgedb",
+  "gpml2pvjson",
+  "@wikipathways/pvjs",
+  "svgo",
+  "@arbennett/base16-gruvbox-dark"
+]

@@ -1,35 +1,45 @@
 _: pkgs:
 let
-  sqlint = pkgs.callPackage ./sqlint/default.nix {};
-  nodePackages = import ./development/node-packages/node-packages.nix;
-  perlPackages = pkgs.callPackage ./perl-packages.nix {}; 
-  pgFormatter = perlPackages.pgFormatter;
-  java-buildpack-memory-calculator = pkgs.callPackage ./java-buildpack-memory-calculator/default.nix {};
-
-  callPackage = pkgs.python3Packages.callPackage;
+  callPackage = pkgs.callPackage;
+  python3CallPackage = pkgs.python3Packages.callPackage;
   buildPythonPackage = pkgs.python3Packages.buildPythonPackage;
-  jupyter_packaging = callPackage ./development/python-modules/jupyter_packaging/default.nix {};
-  simpervisor = callPackage ./development/python-modules/simpervisor/default.nix {};
-  json5 = callPackage ./development/python-modules/json5/default.nix {};
-  jupyter_server = callPackage ./development/python-modules/jupyter_server/default.nix {};
-  jupyterlab_server = callPackage ./development/python-modules/jupyterlab_server/default.nix {
+
+  sqlint = callPackage ./sqlint/default.nix {};
+  myNodePackages = import ./development/node-packages/node-packages.nix;
+  myPerlPackages = callPackage ./perl-packages.nix {}; 
+  java-buildpack-memory-calculator = callPackage ./java-buildpack-memory-calculator/default.nix {};
+  jupyter_packaging = python3CallPackage ./development/python-modules/jupyter_packaging/default.nix {};
+  simpervisor = python3CallPackage ./development/python-modules/simpervisor/default.nix {};
+  json5 = python3CallPackage ./development/python-modules/json5/default.nix {};
+  jupyter_server = python3CallPackage ./development/python-modules/jupyter_server/default.nix {};
+  jupyterlab_server = python3CallPackage ./development/python-modules/jupyterlab_server/default.nix {
     inherit json5 jupyter_server;
   };
-  nbclassic = callPackage ./development/python-modules/nbclassic/default.nix {
+  nbclassic = python3CallPackage ./development/python-modules/nbclassic/default.nix {
     inherit jupyter_packaging jupyter_server;
   };
-  jupyterlab = callPackage ./development/python-modules/jupyterlab/default.nix {
+  jupyterlab = python3CallPackage ./development/python-modules/jupyterlab/default.nix {
     inherit nbclassic jupyter_packaging jupyter_server jupyterlab_server;
   };
-  jupyter_lsp = callPackage ./development/python-modules/jupyter_lsp/default.nix {
+  jupyter_lsp = python3CallPackage ./development/python-modules/jupyter_lsp/default.nix {
     inherit jupyter_server;
   };
-  jupyter-resource-usage = callPackage ./development/python-modules/jupyter-resource-usage/default.nix {
+  jupyter-resource-usage = python3CallPackage ./development/python-modules/jupyter-resource-usage/default.nix {
     inherit jupyterlab;
   };
-  jupyterlab-topbar = callPackage ./development/python-modules/jupyterlab-topbar/default.nix {
+  jupyterlab-topbar = python3CallPackage ./development/python-modules/jupyterlab-topbar/default.nix {
     inherit jupyterlab;
   };
+
+  # TODO: The path is specified strangely below in order to make Nix accept the
+  #       symbol "@" in the file path. Is there a better way to do this?
+  base16-gruvbox-dark-labextension = callPackage (./. + "/development/node-packages/@arbennett/base16-gruvbox-dark/labextension.nix") {
+    nodejs=pkgs.nodejs;
+    jq=pkgs.jq;
+    jupyter=pkgs.python3Packages.jupyter;
+    jupyterlab=jupyterlab;
+  };
+
   packageOverrides = selfPythonPackages: pythonPackages: {
     inherit jupyter-resource-usage jupyterlab-topbar json5 nbclassic jupyter_packaging jupyter_server jupyterlab_server jupyterlab jupyter_lsp simpervisor;
     jupyter-server-proxy = selfPythonPackages.callPackage ./development/python-modules/jupyter-server-proxy/default.nix {};
@@ -73,7 +83,6 @@ in
 
 {
   inherit java-buildpack-memory-calculator sqlint;
-  #inherit perlPackages java-buildpack-memory-calculator sqlint;
 
   python3 = pkgs.python3.override (old: {
     packageOverrides =
@@ -81,6 +90,11 @@ in
         (old.packageOverrides or (_: _: {}))
         packageOverrides;
   });
+
+  base16-gruvbox-dark-labextension=base16-gruvbox-dark-labextension;
+
+  myNodePackages = myNodePackages;
+  myPerlPackages = myPerlPackages;
 
   bash-it = callPackage ./bash-it/default.nix {}; 
   composer2nix = import (fetchTarball https://api.github.com/repos/svanderburg/composer2nix/tarball/8453940d79a45ab3e11f36720b878554fe31489f) {}; 
@@ -91,5 +105,5 @@ in
   privoxy = callPackage ./privoxy/darwin-service.nix {}; 
   pywikibot = callPackage ./pywikibot/default.nix { inherit buildPythonPackage; };
   tosheets = callPackage ./tosheets/default.nix {};
-  vim = callPackage ./vim/default.nix { inherit sqlint pkgs pgFormatter; };
+  vim = callPackage ./vim/default.nix { inherit sqlint pkgs; pgFormatter = myPerlPackages.pgFormatter; };
 }
