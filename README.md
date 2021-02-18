@@ -1,5 +1,15 @@
 # Cheatsheet for creating custom packages
 
+First check [nixpkgs](https://search.nixos.org/packages) and [Nix User Repositories](https://nur.nix-community.org/) to see whether the package has already been created. If not, create a custom package yourself.
+
+## poetry2nix
+
+```
+nix-shell poetry-shell.nix
+poetry add --lock jupytext jupyterlab
+poetry lock && nix-shell test.nix --show-trace
+```
+
 ## Test a package expression
 
 ### Via `nix-build`

@@ -24,6 +24,8 @@ in
 
     # Customizable development requirements
     buildInputs = with pkgs; [
+      ArchR
+
       base16-gruvbox-dark-labextension
 
       bash-it
