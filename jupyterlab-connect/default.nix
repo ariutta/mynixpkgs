@@ -10,7 +10,7 @@ with builtins;
 
 let
   baseName = "jupyterlab-connect";
-  version = "d10101b";
+  version = "bffa5fa";
 in
 stdenv.mkDerivation rec {
   name = (concatStringsSep "-" [baseName version]);
@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
     owner = "ariutta";
     repo = "jupyterlab-connect";
     rev = version;
-    sha256 = "0zik0phgnyzw23hqw6n4npppys0h4v4icxvk0cc67dzig785issg";
+    sha256 = "1r6i4r6hgwzyx91y1206b4cxpp24mshl7cjs339wdw303slrkyla";
   };
 
   preBuild = ''

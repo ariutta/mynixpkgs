@@ -24,9 +24,9 @@ in
 
     # Customizable development requirements
     buildInputs = with pkgs; [
-      ArchR
+      #ArchR
 
-      base16-gruvbox-dark-labextension
+      #base16-gruvbox-dark-labextension
 
       bash-it
 
@@ -60,33 +60,12 @@ in
       (python3.buildEnv.override {
         ignoreCollisions = true;
         extraLibs = with python3Packages; [
-          aquirdturtle_collapsible_headings
           confusable-homoglyphs
           homoglyphs
-          ipython-sql
-          json5
-          jupyter_lsp
-          jupyter_packaging
-          jupyter-resource-usage
-          jupyter_server
-          jupyter-server-proxy
-          jupyterlab
-          jupyterlab_code_formatter
-          jupyterlab-drawio
-          jupyterlab_hide_code
-          jupyterlab-lsp
-          jupyterlab_server
-          jupyterlab-system-monitor
-          jupyterlab-topbar
-          jupyterlab_vim
-          jupyterlab-vimrc
-          nb_black
-          nbclassic
           ndex2
           pyahocorasick
           seaborn
           skosmos_client
-          simpervisor
           trotter
           wikidata2df
 
