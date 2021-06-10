@@ -35,6 +35,7 @@ in
   myNodePackages = myNodePackages;
   myPerlPackages = myPerlPackages;
 
+  allene = callPackage ./allene/default.nix {};
   bash-it = callPackage ./bash-it/default.nix {}; 
   composer2nix = import (fetchTarball https://api.github.com/repos/svanderburg/composer2nix/tarball/8453940d79a45ab3e11f36720b878554fe31489f) {}; 
   jupyterlab-connect = callPackage ./jupyterlab-connect/default.nix {};
