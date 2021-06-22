@@ -2,8 +2,7 @@ _: pkgs:
 let
   callPackage = pkgs.callPackage;
   python3CallPackage = pkgs.python3Packages.callPackage;
-  myNodePackages = import ./development/node-packages/node-packages.nix;
-  myPerlPackages = callPackage ./perl-packages.nix {}; 
+  myNodePackages = import ./development/node-packages/node-packages.nix; 
   java-buildpack-memory-calculator = callPackage ./java-buildpack-memory-calculator/default.nix {};
 
   packageOverrides = selfPythonPackages: pythonPackages: {
@@ -32,7 +31,6 @@ in
   });
 
   myNodePackages = myNodePackages;
-  myPerlPackages = myPerlPackages;
 
   allene = callPackage ./allene/default.nix {};
   bash-it = callPackage ./bash-it/default.nix {}; 
@@ -44,5 +42,7 @@ in
   privoxy = callPackage ./privoxy/darwin-service.nix {}; 
   pywikibot = python3CallPackage ./pywikibot/default.nix {};
   tosheets = callPackage ./tosheets/default.nix {};
-  vim = callPackage ./vim/default.nix { inherit pkgs; };
+
+  # I get an error if I just name this vim
+  vim-ariutta = callPackage ./vim/default.nix {};
 }

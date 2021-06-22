@@ -1,8 +1,6 @@
 # See README.md for instructions on installing/updating.
-with import <nixpkgs> { config.allowUnfree = true; };
-let
-  custom = import ../all-custom.nix;
-in [
+with import <nixpkgs> { config.allowUnfree = true; overlays = [ (import ../overlay.nix) ]; };
+[
   ####################
   # Deps for powerline
   ####################
@@ -41,7 +39,7 @@ in [
   # load desired environment when entering a directory
   pkgs.direnv
 
-  custom.bash-it
+  pkgs.bash-it
   pkgs.gawkInteractive
   pkgs.gettext
   pkgs.jq
@@ -51,6 +49,7 @@ in [
   pkgs.rsync
   pkgs.wget
 
-  custom.vim
+  # I get an error if I just use pkgs.vim
+  pkgs.vim-ariutta
 
 ] ++ (if stdenv.isDarwin then [] else [])
