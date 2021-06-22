@@ -24,7 +24,7 @@ let
   #    but I should be able to specify all my Vim deps in here.
   # 3. Add Black to the vim runtimepath (rtp), which appears to be basically
   #    the PATH variable that applies for anything running inside vim.
-  vimCustomBuildInputs = import ./buildInputs.nix { inherit pkgs; }; 
+  vimCustomBuildInputs = callPackage ./buildInputs.nix {}; 
   CUSTOM_PATH = unsafeDiscardStringContext (concatStringsSep ":" (map (b: toString (b.outPath) + "/bin") vimCustomBuildInputs));
   POWER_LINE_VIM_PATH = unsafeDiscardStringContext (pkgs.python3Packages.powerline.outPath + "/lib/python3.*/site-packages/powerline/bindings/vim");
   PYLS_PATH = unsafeDiscardStringContext (pkgs.python3Packages.python-language-server.outPath + "/bin");
