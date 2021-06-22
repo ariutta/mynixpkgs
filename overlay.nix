@@ -2,7 +2,6 @@ _: pkgs:
 let
   callPackage = pkgs.callPackage;
   python3CallPackage = pkgs.python3Packages.callPackage;
-  sqlint = callPackage ./sqlint/default.nix {};
   myNodePackages = import ./development/node-packages/node-packages.nix;
   myPerlPackages = callPackage ./perl-packages.nix {}; 
   java-buildpack-memory-calculator = callPackage ./java-buildpack-memory-calculator/default.nix {};
@@ -23,7 +22,7 @@ let
 in
 
 {
-  inherit java-buildpack-memory-calculator sqlint;
+  inherit java-buildpack-memory-calculator;
 
   python3 = pkgs.python3.override (old: {
     packageOverrides =
@@ -45,5 +44,5 @@ in
   privoxy = callPackage ./privoxy/darwin-service.nix {}; 
   pywikibot = python3CallPackage ./pywikibot/default.nix {};
   tosheets = callPackage ./tosheets/default.nix {};
-  vim = callPackage ./vim/default.nix { inherit sqlint pkgs; pgFormatter = myPerlPackages.pgFormatter; };
+  vim = callPackage ./vim/default.nix { inherit pkgs; };
 }

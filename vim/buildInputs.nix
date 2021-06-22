@@ -5,7 +5,7 @@
 # https://github.com/NixOS/nixpkgs/issues/26146
 ###################################################
 
-{ pkgs, pgFormatter, sqlint }:
+{ pkgs }:
 
 [
   pkgs.python3
@@ -14,7 +14,7 @@
   ####################
   pkgs.black
   pkgs.html-tidy
-  pgFormatter
+  pkgs.pgformatter
   pkgs.nodePackages.prettier
   # TODO: take a look at javascript-typescript-langserver
   pkgs.nodePackages.typescript
@@ -56,10 +56,5 @@
   pkgs.nodePackages.eslint
 
   pkgs.shellcheck
-  # NOTE: sqlint won't work on NixOS 18.03, because that version doesn't
-  # support passing gemConfig into bundlerApp:
-  # https://github.com/NixOS/nixpkgs/blob/release-18.03/pkgs/development/ruby-modules/bundler-app/default.nix
-  # it missed it by 5 days (Apr 4 vs. Apr 9):
-  # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/ruby-modules/bundler-app/default.nix
-  sqlint
+  pkgs.sqlint
 ]

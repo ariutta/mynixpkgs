@@ -42,10 +42,7 @@ in
       # TODO: this package description isn't quite done
       pywikibot
 
-      sqlint
       tosheets
-
-      myPerlPackages.pgFormatter
 
       myNodePackages.bridgedb
       myNodePackages.gpml2pvjson

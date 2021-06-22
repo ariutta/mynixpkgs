@@ -51,7 +51,7 @@ let g:neoformat_enabled_xml = ['tidy']
 
 " TODO sqlformat (from sqlparse) messes up CREATE TABLE statements:
 " https://github.com/andialbrecht/sqlparse/issues/360
-" So I added pg_format (from pgFormatter) as an option for Neoformat.
+" So I added pg_format (from pgformatter) as an option for Neoformat.
 " But the version of Neoformat in Nixpkgs hasn't
 " been updated yet to use my update.
 " Watch for the neoformat expression to be updated to anything after Apr. 20
