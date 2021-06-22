@@ -60,8 +60,16 @@ let g:neoformat_enabled_xml = ['tidy']
 "let g:neoformat_enabled_sql = ['pg_format']
 " And add *.sql to the list of file extensions for Neoformat
 
-" Autoformat on save for filetypes specified:
-autocmd BufWritePre *.css,*.html,*.js,*.jsx,*.json,*.md,*.php,*.py,*.sh,*.ts,*.tsx,*.xml Neoformat
+" Autoformat on save
+augroup fmt
+  autocmd!
+  autocmd BufWritePre * undojoin | Neoformat
+  " alternative: autoformat on save for selected filetypes only:
+  "autocmd BufWritePre *.css,*.html,*.js,*.jsx,*.json,*.md,*.php,*.py,*.sh,*.ts,*.tsx,*.xml Neoformat
+augroup END
+
+" to disable autoformat on save:
+" autocmd! fmt
 
 """""""""""""""""""""""""""""""
 " ALE: check syntax and fix code
