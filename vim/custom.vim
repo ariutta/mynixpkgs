@@ -19,7 +19,7 @@ exe 'set rtp+=' . expand("CUSTOM_PATH_REPLACE_ME")
 " it avoids conflicts it by essentially namespacing it under vim:
 "let $PATH = "CUSTOM_PATH_REPLACE_ME" . ':' . $PATH
 
-" this makes pyls and its plugins work:
+" this makes pylsp and its plugins work:
 let $PATH = $PATH . ':' . "CUSTOM_PATH_REPLACE_ME"
 
 " Powerline:
@@ -84,14 +84,14 @@ nmap <silent> <C-j> <Plug>(ale_next_wrap)
 let g:ale_pattern_options = {
 \ '\.min\.js$': {'ale_linters': [], 'ale_fixers': []},
 \ '\.min\.css$': {'ale_linters': [], 'ale_fixers': []},
-\ '\.py$': {'ale_linters': ['flake8', 'pyls'], 'ale_fixers': ['isort', 'black']},
+\ '\.py$': {'ale_linters': ['flake8', 'pylsp'], 'ale_fixers': ['isort', 'black']},
 \}
 
-"\ '\.py$': {'ale_linters': ['flake8', 'pylint', 'pyls'], 'ale_fixers': ['isort', 'black']},
-"\ '\.py$': {'ale_linters': ['flake8', 'pylint', 'pyls'], 'ale_fixers': ['isort', 'yapf', 'black']},
+"\ '\.py$': {'ale_linters': ['flake8', 'pylint', 'pylsp'], 'ale_fixers': ['isort', 'black']},
+"\ '\.py$': {'ale_linters': ['flake8', 'pylint', 'pylsp'], 'ale_fixers': ['isort', 'yapf', 'black']},
 
-"" Python Language Server (pyls)
-"" https://github.com/palantir/python-language-server
+"" Python LSP Server (pylsp)
+"" https://github.com/python-lsp/python-lsp-server
 "" handles the following automatically:
 ""rope
 ""pyflakes
@@ -101,14 +101,14 @@ let g:ale_pattern_options = {
 ""autopep8
 ""YAPF
 "" and the following w/ plugins installed:
-""pyls-mypy
+""pylsp-mypy
 ""pyls-isort
-""pyls-black
+""python-lsp-black
 "" It does not handle the following:
 ""flake8
 ""pylint
 
-"Available Linters: ['bandit', 'flake8', 'mypy', 'prospector', 'pycodestyle', 'pydocstyle', 'pyflakes', 'pylama', 'pylint', 'pyls', 'pyre', 'vulture']
+"Available Linters: ['bandit', 'flake8', 'mypy', 'prospector', 'pycodestyle', 'pydocstyle', 'pyflakes', 'pylama', 'pylint', 'pylsp', 'pyre', 'vulture']
 "  Enabled Linters: ['flake8', 'mypy', 'pylint']
 " Suggested Fixers:
 "  'add_blank_lines_for_python_control_statements' - Add blank lines before control statements.
@@ -127,8 +127,8 @@ let g:ale_pattern_options = {
 let g:ale_python_flake8_options="--ignore=E501,W503"
 "let g:ale_python_pycodestyle_options="--max-line-length=120"
 "let g:ale_python_pycodestyle_options="--ignore=E501,W503"
-"let g:ale_python_pyls_options="--ignore=E501,W503"
-"let g:ale_python_pyls_use_global = 1
+"let g:ale_python_pylsp_options="--ignore=E501,W503"
+"let g:ale_python_pylsp_use_global = 1
 
 " Call shellcheck with param to follow files
 let g:ale_sh_shellcheck_options = "-x"
@@ -143,9 +143,9 @@ let g:ale_sh_shellcheck_options = "-x"
 ""autopep8
 ""YAPF
 "" and the following w/ plugins installed:
-""pyls-mypy
+""pylsp-mypy
 ""pyls-isort
-""pyls-black
+""python-lsp-black
 "" It does not handle the following:
 ""flake8
 ""pylint
@@ -186,9 +186,9 @@ let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standar
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "call LanguageClient#setDiagnosticsList("Quickfix")
 "let g:LanguageClient_serverCommands = {
-"  \ 'python': ['pyls']
+"  \ 'python': ['pylsp']
 "  \ }
-"  "\ 'python': ['PYLS_PATH_REPLACE_ME' . '/pyls']
+"  "\ 'python': ['PYLSP_PATH_REPLACE_ME' . '/pylsp']
 "
 "function! RefactorRenameYcm()
 "  call inputsave()

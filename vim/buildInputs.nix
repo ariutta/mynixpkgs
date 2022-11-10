@@ -22,9 +22,9 @@
   pkgs.php.packages.php-cs-fixer
   pkgs.jq
 
-  # Python, Python Language Server & PYLS deps
+  # Python, Python LSP Server & PYLSP deps
   (pkgs.python3.withPackages (p: with p; [
-    python-language-server
+    python-lsp-server
     rope
     flake8 # this is pyflakes + syntax checking
     mccabe
@@ -32,7 +32,7 @@
     pydocstyle
     pylint
     pyls-isort
-    pyls-mypy
+    pylsp-mypy
     pkgs.black
   ]))
 

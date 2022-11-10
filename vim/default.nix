@@ -27,9 +27,9 @@ let
   vimCustomBuildInputs = callPackage ./buildInputs.nix {}; 
   CUSTOM_PATH = unsafeDiscardStringContext (concatStringsSep ":" (map (b: toString (b.outPath) + "/bin") vimCustomBuildInputs));
   POWER_LINE_VIM_PATH = unsafeDiscardStringContext (pkgs.python3Packages.powerline.outPath + "/lib/python3.*/site-packages/powerline/bindings/vim");
-  PYLS_PATH = unsafeDiscardStringContext (pkgs.python3Packages.python-language-server.outPath + "/bin");
+  PYLSP_PATH = unsafeDiscardStringContext (pkgs.python3Packages.python-lsp-server.outPath + "/bin");
 
-  vim_configurable = pkgs.vim_configurable.override { python=pkgs.python3; };
+  vim_configurable = pkgs.vim_configurable.override { python3=pkgs.python3; };
 
   vim_configured = vim_configurable.overrideAttrs (oldAttrs: {
     # NOTE: we don't need to specify the following:
@@ -54,11 +54,11 @@ vim_configured.customize {
     vimrcConfig.customRC = replaceStrings [
       "CUSTOM_PATH_REPLACE_ME"
       "POWER_LINE_VIM_PATH_REPLACE_ME"
-      "PYLS_PATH_REPLACE_ME"
+      "PYLSP_PATH_REPLACE_ME"
     ] [
       CUSTOM_PATH
       POWER_LINE_VIM_PATH
-      PYLS_PATH
+      PYLSP_PATH
     ] (readFile ./.vimrc + readFile ./custom.vim);
 
     # Use the default plugin list shipped with nixpkgs
